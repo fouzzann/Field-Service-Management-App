@@ -91,6 +91,7 @@ Future<void> init() async {
         remoteDataSource: sl(),
         localDataSource: sl(),
         networkInfo: sl(),
+        notificationRepository: sl(),
       ));
 
   // Data Sources

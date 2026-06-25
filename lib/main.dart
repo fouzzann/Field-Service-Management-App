@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'core/theme/app_theme.dart';
 import 'core/services/fcm_service.dart';
+import 'core/utils/app_colors.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/auth/presentation/bloc/auth_event.dart';
 import 'features/auth/presentation/bloc/auth_state.dart';
@@ -50,6 +51,85 @@ class _MyAppState extends State<MyApp> {
           builder: (_) => TaskDetailScreen(taskId: taskId),
         ),
       );
+    });
+
+    // Listen to foreground messages and show SnackBar banner
+    di.sl<FCMService>().onForegroundMessage.listen((message) {
+      final notification = message.notification;
+      if (notification != null) {
+        final context = _navigatorKey.currentContext;
+        if (context != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: AppColors.surface,
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    notification.title ?? '',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primaryLight,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    notification.body ?? '',
+                    style: const TextStyle(color: AppColors.textPrimary),
+                  ),
+                ],
+              ),
+              action: SnackBarAction(
+                label: 'View',
+                textColor: AppColors.primary,
+                onPressed: () {
+                  final taskId = message.data['taskId'] as String?;
+                  if (taskId != null) {
+                    _navigatorKey.currentState?.push(
+                      MaterialPageRoute(
+                        builder: (_) => TaskDetailScreen(taskId: taskId),
+                      ),
+                    );
+                  }
+                },
+              ),
+            ),
+          );
+        }
+      }
+    });
+
+    // Listen to local notifications (like Sync Complete)
+    di.sl<FCMService>().onLocalNotification.listen((payload) {
+      final context = _navigatorKey.currentContext;
+      if (context != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: AppColors.success,
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  payload.title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  payload.body,
+                  style: const TextStyle(color: Colors.white70),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
     });
   }
 
