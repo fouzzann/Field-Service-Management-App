@@ -12,6 +12,7 @@ import 'features/task/presentation/bloc/task/task_bloc.dart';
 import 'features/task/presentation/bloc/sync/sync_bloc.dart';
 import 'features/task/presentation/bloc/theme/theme_cubit.dart';
 import 'package:field_service_management_app/core/utils/app_colors.dart';
+import 'features/auth/presentation/screens/splash_screen.dart';
 import 'injection_container.dart' as di;
 import 'firebase_options.dart';
 
@@ -74,7 +75,7 @@ class _MyAppState extends State<MyApp> {
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: themeMode,
-            home: const AuthWrapper(),
+            home: const SplashScreen(),
           );
         },
       ),

@@ -50,7 +50,7 @@ class _AgentTasksScreenState extends State<AgentTasksScreen> {
           backgroundColor: AppColors.background,
           appBar: AppBar(
             backgroundColor: AppColors.background,
-            title: const Text('My Assigned Tasks'),
+            title: const Text('Agent Dashboard'),
             leading: IconButton(
               icon: const Icon(Icons.settings_outlined),
               onPressed: () => Navigator.of(context).push(
@@ -121,25 +121,26 @@ class _AgentTasksScreenState extends State<AgentTasksScreen> {
                         context.read<TaskBloc>().add(LoadTasks());
                         context.read<SyncBloc>().add(TriggerSync());
                       },
-                      child: Column(
+                      child: ListView(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                         children: [
                           _buildSyncStatusBanner(),
-                          Expanded(
-                            child: myTasks.isEmpty
-                                ? const EmptyStateWidget(
-                                    title: 'No Tasks Assigned',
-                                    description: 'You currently have no tasks assigned to you.',
-                                    icon: Icons.assignment_turned_in_outlined,
-                                  )
-                                : ListView.builder(
-                                    padding: const EdgeInsets.all(20),
-                                    itemCount: myTasks.length,
-                                    itemBuilder: (context, index) {
-                                      final task = myTasks[index];
-                                      return _buildTaskCard(context, task);
-                                    },
-                                  ),
-                          ),
+                          const SizedBox(height: 16),
+                          _buildWelcomeHeader(authState.user.name),
+                          const SizedBox(height: 16),
+                          _buildAgentMetricsRow(myTasks),
+                          const SizedBox(height: 28),
+                          Text('My Tasks List', style: AppTextStyles.title),
+                          const SizedBox(height: 12),
+                          if (myTasks.isEmpty)
+                            const EmptyStateWidget(
+                              title: 'No Tasks Assigned',
+                              description: 'You currently have no tasks assigned to you.',
+                              icon: Icons.assignment_turned_in_outlined,
+                            )
+                          else
+                            ...myTasks.map((task) => _buildTaskCard(context, task)).toList(),
+                          const SizedBox(height: 20),
                         ],
                       ),
                     );
@@ -151,6 +152,153 @@ class _AgentTasksScreenState extends State<AgentTasksScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildWelcomeHeader(String name) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.surfaceLight.withOpacity(0.3),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.12),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.engineering_outlined,
+              color: AppColors.primaryLight,
+              size: 28,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Welcome Back,',
+                  style: AppTextStyles.caption.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  name,
+                  style: AppTextStyles.title.copyWith(
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Here is your overview for today',
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAgentMetricsRow(List<TaskEntity> tasks) {
+    final total = tasks.length;
+    final pending = tasks.where((t) => t.status == 'Pending').length;
+    final inProgress = tasks.where((t) => t.status == 'In Progress').length;
+    final completed = tasks.where((t) => t.status == 'Completed').length;
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      clipBehavior: Clip.none,
+      child: Row(
+        children: [
+          _buildMiniMetricCard('Assigned', '$total', Icons.assignment_outlined, AppColors.primary),
+          const SizedBox(width: 10),
+          _buildMiniMetricCard('Pending', '$pending', Icons.hourglass_empty_outlined, AppColors.statusPending),
+          const SizedBox(width: 10),
+          _buildMiniMetricCard('Active', '$inProgress', Icons.trending_up, AppColors.statusInProgress),
+          const SizedBox(width: 10),
+          _buildMiniMetricCard('Done', '$completed', Icons.check_circle_outline, AppColors.statusCompleted),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMiniMetricCard(String label, String value, IconData icon, Color color) {
+    return Container(
+      width: 110,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.surfaceLight.withOpacity(0.3),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.08),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: color, size: 14),
+              ),
+              Text(
+                value,
+                style: TextStyle(
+                  fontFamily: AppTextStyles.fontFamily,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            label,
+            style: AppTextStyles.caption.copyWith(
+              fontWeight: FontWeight.bold,
+              fontSize: 11,
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -176,7 +324,6 @@ class _AgentTasksScreenState extends State<AgentTasksScreen> {
             : (isOnline ? AppColors.success : AppColors.statusPending);
 
         return Container(
-          margin: const EdgeInsets.only(left: 20, right: 20, top: 12),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
             color: bannerColor.withOpacity(0.08),

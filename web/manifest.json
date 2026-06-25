@@ -1,6 +1,6 @@
 {
-    "name": "field_service_management_app",
-    "short_name": "field_service_management_app",
+    "name": "Field Service Management",
+    "short_name": "Field Service",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

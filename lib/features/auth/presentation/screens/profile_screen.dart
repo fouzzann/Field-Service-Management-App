@@ -3,12 +3,29 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:field_service_management_app/core/utils/app_colors.dart';
 import 'package:field_service_management_app/core/utils/text_styles.dart';
 import 'package:field_service_management_app/features/task/presentation/bloc/theme/theme_cubit.dart';
+import 'package:field_service_management_app/features/task/presentation/bloc/task/task_bloc.dart';
+import 'package:field_service_management_app/features/task/presentation/bloc/task/task_state.dart';
+import 'package:field_service_management_app/features/task/presentation/bloc/task/task_event.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  @override
+  void initState() {
+    super.initState();
+    final taskBlocState = context.read<TaskBloc>().state;
+    if (taskBlocState is! TasksLoaded) {
+      context.read<TaskBloc>().add(LoadTasks());
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,6 +38,7 @@ class ProfileScreen extends StatelessWidget {
             title: const Text('My Profile'),
           ),
           body: Container(
+            height: double.infinity,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: AppColors.isDark
@@ -36,168 +54,174 @@ class ProfileScreen extends StatelessWidget {
                   final user = state.user;
                   final roleColor = user.isAdmin ? AppColors.primary : AppColors.secondary;
                   
-                  return Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 20),
-                        
-                        // Dual-Ring Glowing Avatar
-                        Center(
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              Container(
-                                width: 140,
-                                height: 140,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: roleColor.withOpacity(0.2),
-                                    width: 4,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: roleColor.withOpacity(0.15),
-                                      blurRadius: 20,
-                                      spreadRadius: 5,
+                  return SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 20),
+                          
+                          // Dual-Ring Glowing Avatar
+                          Center(
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                Container(
+                                  width: 140,
+                                  height: 140,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: roleColor.withOpacity(0.2),
+                                      width: 4,
                                     ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                width: 120,
-                                height: 120,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: roleColor.withOpacity(0.5),
-                                    width: 2,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: roleColor.withOpacity(0.15),
+                                        blurRadius: 20,
+                                        spreadRadius: 5,
+                                      ),
+                                    ],
                                   ),
                                 ),
+                                Container(
+                                  width: 120,
+                                  height: 120,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: roleColor.withOpacity(0.5),
+                                      width: 2,
+                                    ),
+                                  ),
+                                ),
+                                CircleAvatar(
+                                  radius: 52,
+                                  backgroundColor: roleColor.withOpacity(0.12),
+                                  child: Icon(
+                                    user.isAdmin
+                                        ? Icons.admin_panel_settings_outlined
+                                        : Icons.engineering_outlined,
+                                    size: 52,
+                                    color: user.isAdmin
+                                        ? AppColors.primaryLight
+                                        : AppColors.secondaryLight,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          
+                          // Name
+                          Text(
+                            user.name,
+                            style: AppTextStyles.heading2.copyWith(
+                              letterSpacing: -0.5,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+                          
+                          // Sleek Role Pill Badge
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: roleColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: roleColor.withOpacity(0.4),
+                                width: 1,
                               ),
-                              CircleAvatar(
-                                radius: 52,
-                                backgroundColor: roleColor.withOpacity(0.12),
-                                child: Icon(
-                                  user.isAdmin
-                                      ? Icons.admin_panel_settings_outlined
-                                      : Icons.engineering_outlined,
-                                  size: 52,
-                                  color: user.isAdmin
-                                      ? AppColors.primaryLight
-                                      : AppColors.secondaryLight,
+                            ),
+                            child: Text(
+                              user.isAdmin ? 'ADMINISTRATOR' : 'FIELD AGENT',
+                              style: AppTextStyles.caption.copyWith(
+                                color: user.isAdmin ? AppColors.primaryLight : AppColors.secondaryLight,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                          ),
+                          
+                          // Dynamic Task Stats Card
+                          _buildTaskStatsCard(context, user.uid, user.isAdmin),
+                          const SizedBox(height: 24),
+                          
+                          // Glassmorphic Info Card
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: AppColors.surface,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: AppColors.surfaceLight.withOpacity(0.3),
+                                width: 1,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.04),
+                                  blurRadius: 16,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              children: [
+                                _buildDetailRow(
+                                  Icons.email_outlined,
+                                  'Email Address',
+                                  user.email,
+                                  roleColor,
+                                ),
+                                Divider(color: AppColors.surfaceLight.withOpacity(0.5), height: 24),
+                                _buildDetailRow(
+                                  Icons.perm_identity_outlined,
+                                  'User ID Reference',
+                                  user.uid,
+                                  roleColor,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 32),
+                          
+                          // Premium Logout Button
+                          Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.error.withOpacity(0.2),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                context.read<AuthBloc>().add(LogoutRequested());
+                              },
+                              icon: const Icon(Icons.logout, size: 20),
+                              label: const Text('Logout Session'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.error,
+                                foregroundColor: AppColors.white,
+                                minimumSize: const Size(double.infinity, 54),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                textStyle: AppTextStyles.button.copyWith(
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        
-                        // Name
-                        Text(
-                          user.name,
-                          style: AppTextStyles.heading2.copyWith(
-                            letterSpacing: -0.5,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 8),
-                        
-                        // Sleek Role Pill Badge
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: roleColor.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: roleColor.withOpacity(0.4),
-                              width: 1,
                             ),
                           ),
-                          child: Text(
-                            user.isAdmin ? 'ADMINISTRATOR' : 'FIELD AGENT',
-                            style: AppTextStyles.caption.copyWith(
-                              color: user.isAdmin ? AppColors.primaryLight : AppColors.secondaryLight,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1.2,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 40),
-                        
-                        // Glassmorphic Info Card
-                        Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: AppColors.surface,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: AppColors.surfaceLight.withOpacity(0.3),
-                              width: 1,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.04),
-                                blurRadius: 16,
-                                offset: const Offset(0, 8),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            children: [
-                              _buildDetailRow(
-                                Icons.email_outlined,
-                                'Email Address',
-                                user.email,
-                                roleColor,
-                              ),
-                              Divider(color: AppColors.surfaceLight.withOpacity(0.5), height: 24),
-                              _buildDetailRow(
-                                Icons.perm_identity_outlined,
-                                'User ID Reference',
-                                user.uid,
-                                roleColor,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Spacer(),
-                        
-                        // Premium Logout Button
-                        Container(
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.error.withOpacity(0.2),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: ElevatedButton.icon(
-                            onPressed: () {
-                              context.read<AuthBloc>().add(LogoutRequested());
-                            },
-                            icon: const Icon(Icons.logout, size: 20),
-                            label: const Text('Logout Session'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.error,
-                              foregroundColor: AppColors.white,
-                              minimumSize: const Size(double.infinity, 54),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              textStyle: AppTextStyles.button.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                      ],
+                          const SizedBox(height: 20),
+                        ],
+                      ),
                     ),
                   );
                 }
@@ -207,6 +231,178 @@ class ProfileScreen extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildTaskStatsCard(BuildContext context, String userUid, bool isAdmin) {
+    return BlocBuilder<TaskBloc, TaskState>(
+      builder: (context, state) {
+        if (state is TaskLoading) {
+          return const Padding(
+            padding: EdgeInsets.only(top: 24),
+            child: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+        
+        if (state is TasksLoaded) {
+          final userTasks = isAdmin
+              ? state.allTasks
+              : state.allTasks.where((task) => task.assignedAgentId == userUid).toList();
+
+          final total = userTasks.length;
+          final completed = userTasks.where((t) => t.status == 'Completed').length;
+          final inProgress = userTasks.where((t) => t.status == 'In Progress').length;
+          final pending = userTasks.where((t) => t.status == 'Pending').length;
+          final active = inProgress + pending;
+
+          final double completionRate = total > 0 ? (completed / total) : 0.0;
+          final String completionPercentage = (completionRate * 100).toStringAsFixed(0);
+
+          return Container(
+            margin: const EdgeInsets.only(top: 24),
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: AppColors.surfaceLight.withOpacity(0.3),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 16,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Activity Metrics',
+                      style: AppTextStyles.subtitle.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        isAdmin ? 'Global Stats' : 'Assigned Tasks',
+                        style: AppTextStyles.caption.copyWith(
+                          color: AppColors.primaryLight,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                
+                // Progress Bar
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Task Completion Rate',
+                          style: AppTextStyles.caption.copyWith(
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          '$completionPercentage%',
+                          style: TextStyle(
+                            fontFamily: AppTextStyles.fontFamily,
+                            color: AppColors.statusCompleted,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: LinearProgressIndicator(
+                        value: completionRate,
+                        minHeight: 8,
+                        backgroundColor: AppColors.surfaceLight.withOpacity(0.5),
+                        valueColor: const AlwaysStoppedAnimation<Color>(AppColors.statusCompleted),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                
+                // Metrics Breakdown Grid/Row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildStatItem('Total', '$total', AppColors.primaryLight),
+                    _buildStatItem('Completed', '$completed', AppColors.statusCompleted),
+                    _buildStatItem('Active', '$active', AppColors.statusInProgress),
+                  ],
+                ),
+              ],
+            ),
+          );
+        }
+        
+        return const SizedBox.shrink();
+      },
+    );
+  }
+
+  Widget _buildStatItem(String label, String value, Color color) {
+    return Expanded(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        decoration: BoxDecoration(
+          color: AppColors.background.withOpacity(0.3),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: AppColors.surfaceLight.withOpacity(0.2),
+          ),
+        ),
+        child: Column(
+          children: [
+            Text(
+              value,
+              style: TextStyle(
+                fontFamily: AppTextStyles.fontFamily,
+                color: color,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: AppTextStyles.caption.copyWith(
+                color: AppColors.textSecondary,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
