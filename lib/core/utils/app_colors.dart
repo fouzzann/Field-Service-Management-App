@@ -10,15 +10,18 @@ class AppColors {
   static const Color secondaryLight = Color(0xFF22D3EE);
   static const Color secondaryDark = Color(0xFF0891B2);
 
+  // Theme state
+  static bool isDark = true;
+
   // Background / Surface Colors
-  static const Color background = Color(0xFF0F172A); // Slate 900
-  static const Color surface = Color(0xFF1E293B); // Slate 800
-  static const Color surfaceLight = Color(0xFF334155); // Slate 700
+  static Color get background => isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC);
+  static Color get surface => isDark ? const Color(0xFF1E293B) : const Color(0xFFFFFFFF);
+  static Color get surfaceLight => isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9);
   
   // Text Colors
-  static const Color textPrimary = Color(0xFFF8FAFC); // Slate 50
-  static const Color textSecondary = Color(0xFF94A3B8); // Slate 400
-  static const Color textMuted = Color(0xFF64748B); // Slate 500
+  static Color get textPrimary => isDark ? const Color(0xFFF8FAFC) : const Color(0xFF0F172A);
+  static Color get textSecondary => isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569);
+  static Color get textMuted => isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8);
 
   // Status Colors
   static const Color statusPending = Color(0xFFF59E0B); // Amber
@@ -44,9 +47,15 @@ class AppColors {
     end: Alignment.bottomRight,
   );
 
-  static const LinearGradient darkCardGradient = LinearGradient(
-    colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
+  static LinearGradient get darkCardGradient => isDark
+      ? const LinearGradient(
+          colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        )
+      : const LinearGradient(
+          colors: [Color(0xFFFFFFFF), Color(0xFFF1F5F9)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        );
 }

@@ -32,11 +32,11 @@ class _LoginScreenState extends State<LoginScreen> {
     if (_formKey.currentState!.validate()) {
       FocusScope.of(context).unfocus();
       context.read<AuthBloc>().add(
-            LoginSubmitted(
-              email: _emailController.text.trim(),
-              password: _passwordController.text,
-            ),
-          );
+        LoginSubmitted(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        ),
+      );
     }
   }
 
@@ -69,7 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               // Dynamic Background Glows
               Container(
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [AppColors.background, Color(0xFF020617)],
                     begin: Alignment.topCenter,
@@ -91,7 +91,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         color: AppColors.primary.withOpacity(0.3),
                         blurRadius: 100,
                         spreadRadius: 50,
-                      )
+                      ),
                     ],
                   ),
                 ),
@@ -110,7 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         color: AppColors.secondary.withOpacity(0.3),
                         blurRadius: 100,
                         spreadRadius: 50,
-                      )
+                      ),
                     ],
                   ),
                 ),
@@ -175,9 +175,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                   controller: _emailController,
                                   validator: AppValidators.validateEmail,
                                   keyboardType: TextInputType.emailAddress,
-                                  decoration: const InputDecoration(
+                                  decoration: InputDecoration(
                                     labelText: 'Email Address',
-                                    prefixIcon: Icon(Icons.email_outlined, color: AppColors.textSecondary),
+                                    prefixIcon: Icon(
+                                      Icons.email_outlined,
+                                      color: AppColors.textSecondary,
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(height: 16),
@@ -187,10 +190,15 @@ class _LoginScreenState extends State<LoginScreen> {
                                   obscureText: _obscurePassword,
                                   decoration: InputDecoration(
                                     labelText: 'Password',
-                                    prefixIcon: const Icon(Icons.lock_outlined, color: AppColors.textSecondary),
+                                    prefixIcon: Icon(
+                                      Icons.lock_outlined,
+                                      color: AppColors.textSecondary,
+                                    ),
                                     suffixIcon: IconButton(
                                       icon: Icon(
-                                        _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                        _obscurePassword
+                                            ? Icons.visibility_off_outlined
+                                            : Icons.visibility_outlined,
                                         color: AppColors.textSecondary,
                                       ),
                                       onPressed: () {
@@ -207,13 +215,16 @@ class _LoginScreenState extends State<LoginScreen> {
                                     : Container(
                                         decoration: BoxDecoration(
                                           gradient: AppColors.primaryGradient,
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: AppColors.primary.withOpacity(0.4),
+                                              color: AppColors.primary
+                                                  .withOpacity(0.4),
                                               blurRadius: 10,
                                               offset: const Offset(0, 4),
-                                            )
+                                            ),
                                           ],
                                         ),
                                         child: ElevatedButton(
@@ -222,7 +233,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                             backgroundColor: Colors.transparent,
                                             shadowColor: Colors.transparent,
                                             shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(12),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
                                             ),
                                           ),
                                           child: const Text('Login'),
@@ -252,15 +264,23 @@ class _LoginScreenState extends State<LoginScreen> {
                                   'admin@field.com',
                                   'admin123',
                                 ),
-                                icon: const Icon(Icons.admin_panel_settings_outlined, color: AppColors.primaryLight),
+                                icon: const Icon(
+                                  Icons.admin_panel_settings_outlined,
+                                  color: AppColors.primaryLight,
+                                ),
                                 label: const Text('Admin'),
                                 style: OutlinedButton.styleFrom(
-                                  side: const BorderSide(color: AppColors.primaryLight, width: 1),
+                                  side: const BorderSide(
+                                    color: AppColors.primaryLight,
+                                    width: 1,
+                                  ),
                                   foregroundColor: AppColors.white,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8),
                                   ),
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                  ),
                                 ),
                               ),
                             ),
@@ -271,15 +291,23 @@ class _LoginScreenState extends State<LoginScreen> {
                                   'agent1@field.com',
                                   'agent123',
                                 ),
-                                icon: const Icon(Icons.engineering_outlined, color: AppColors.secondaryLight),
+                                icon: const Icon(
+                                  Icons.engineering_outlined,
+                                  color: AppColors.secondaryLight,
+                                ),
                                 label: const Text('Agent 1'),
                                 style: OutlinedButton.styleFrom(
-                                  side: const BorderSide(color: AppColors.secondaryLight, width: 1),
+                                  side: const BorderSide(
+                                    color: AppColors.secondaryLight,
+                                    width: 1,
+                                  ),
                                   foregroundColor: AppColors.white,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8),
                                   ),
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                  ),
                                 ),
                               ),
                             ),
@@ -291,10 +319,16 @@ class _LoginScreenState extends State<LoginScreen> {
                             'agent2@field.com',
                             'agent123',
                           ),
-                          icon: const Icon(Icons.engineering_outlined, color: AppColors.secondaryLight),
+                          icon: const Icon(
+                            Icons.engineering_outlined,
+                            color: AppColors.secondaryLight,
+                          ),
                           label: const Text('Agent 2'),
                           style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: AppColors.secondaryLight, width: 1),
+                            side: const BorderSide(
+                              color: AppColors.secondaryLight,
+                              width: 1,
+                            ),
                             foregroundColor: AppColors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),

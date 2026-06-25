@@ -7,19 +7,16 @@ import '../datasources/task_local_data_source.dart';
 import '../datasources/task_remote_data_source.dart';
 import '../models/task_model.dart';
 import '../models/sync_queue_item.dart';
-import 'package:field_service_management_app/features/notification/domain/repositories/notification_repository.dart';
 
 class TaskRepositoryImpl implements TaskRepository {
   final TaskRemoteDataSource remoteDataSource;
   final TaskLocalDataSource localDataSource;
   final NetworkInfo networkInfo;
-  final NotificationRepository notificationRepository;
 
   TaskRepositoryImpl({
     required this.remoteDataSource,
     required this.localDataSource,
     required this.networkInfo,
-    required this.notificationRepository,
   });
 
   @override
@@ -28,13 +25,6 @@ class TaskRepositoryImpl implements TaskRepository {
     final isConnected = await networkInfo.isConnected;
     if (isConnected) {
       await remoteDataSource.createTask(taskModel);
-      if (task.assignedAgentId.isNotEmpty) {
-        await notificationRepository.sendTaskAssignedNotification(
-          agentId: task.assignedAgentId,
-          taskTitle: task.title,
-          taskId: task.taskId,
-        ).catchError((_) {});
-      }
     } else {
       throw Exception('Cannot create task offline. Internet connection required.');
     }
@@ -46,13 +36,6 @@ class TaskRepositoryImpl implements TaskRepository {
     final isConnected = await networkInfo.isConnected;
     if (isConnected) {
       await remoteDataSource.updateTask(taskModel);
-      if (task.assignedAgentId.isNotEmpty) {
-        await notificationRepository.sendTaskAssignedNotification(
-          agentId: task.assignedAgentId,
-          taskTitle: task.title,
-          taskId: task.taskId,
-        ).catchError((_) {});
-      }
     } else {
       throw Exception('Cannot edit/reassign task offline. Internet connection required.');
     }
@@ -239,9 +222,6 @@ class TaskRepositoryImpl implements TaskRepository {
           // Mark photo upload as synced and remove pending record
           await localDataSource.markPhotoUploadSynced(taskId);
           await localDataSource.removePendingPhotoUpload(taskId);
-          
-          // Trigger photo uploaded notification to admins
-          await notificationRepository.sendPhotoUploadedNotification(taskId: taskId).catchError((_) {});
 
           if (kDebugMode) {
             print('Sync Queue [Photo]: Task $taskId photo sync success.');
@@ -288,13 +268,6 @@ class TaskRepositoryImpl implements TaskRepository {
           await localDataSource.markStatusUpdateSynced(taskId);
           await localDataSource.removePendingStatusUpdate(taskId);
 
-          // Trigger status update notification to admins
-          if (status == 'In Progress') {
-            await notificationRepository.sendTaskStartedNotification(taskId: taskId).catchError((_) {});
-          } else if (status == 'Completed') {
-            await notificationRepository.sendTaskCompletedNotification(taskId: taskId).catchError((_) {});
-          }
-
           if (kDebugMode) {
             print('Sync Queue [Status]: Task $taskId status sync success.');
           }
@@ -302,18 +275,6 @@ class TaskRepositoryImpl implements TaskRepository {
           if (kDebugMode) {
             print('Sync Queue [Status]: Failed to sync status update for task $taskId: $e');
           }
-        }
-      }
-
-      // 3. Trigger local notifications when offline changes successfully sync
-      if (hadPendingChanges) {
-        final remainingUpdates = await localDataSource.getPendingStatusUpdates();
-        final remainingUploads = await localDataSource.getPendingPhotoUploads();
-        if (remainingUpdates.isEmpty && remainingUploads.isEmpty) {
-          await notificationRepository.showLocalNotification(
-            title: 'Sync Complete',
-            body: 'Your offline changes have been synced successfully.',
-          ).catchError((_) {});
         }
       }
     } finally {

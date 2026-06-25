@@ -40,7 +40,7 @@ class TaskDetailScreen extends StatelessWidget {
               ),
               ListTile(
                 leading: const Icon(Icons.camera_alt_outlined, color: AppColors.primaryLight),
-                title: const Text('Take Photo (Camera)', style: TextStyle(color: AppColors.textPrimary)),
+                title: Text('Take Photo (Camera)', style: TextStyle(color: AppColors.textPrimary)),
                 onTap: () {
                   Navigator.of(builderContext).pop();
                   _pickCompletionPhoto(context, task, ImageSource.camera);
@@ -48,7 +48,7 @@ class TaskDetailScreen extends StatelessWidget {
               ),
               ListTile(
                 leading: const Icon(Icons.photo_library_outlined, color: AppColors.primaryLight),
-                title: const Text('Choose from Gallery', style: TextStyle(color: AppColors.textPrimary)),
+                title: Text('Choose from Gallery', style: TextStyle(color: AppColors.textPrimary)),
                 onTap: () {
                   Navigator.of(builderContext).pop();
                   _pickCompletionPhoto(context, task, ImageSource.gallery);
@@ -182,10 +182,10 @@ class TaskDetailScreen extends StatelessWidget {
                           backgroundColor: AppColors.primary.withOpacity(0.15),
                           child: const Icon(Icons.person_outline, color: AppColors.primaryLight),
                         ),
-                        title: const Text('Assigned Agent', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                        title: Text('Assigned Agent', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
                         subtitle: Text(agentName, style: AppTextStyles.title.copyWith(fontSize: 16)),
                       ),
-                      const Divider(color: AppColors.surfaceLight),
+                      Divider(color: AppColors.surfaceLight),
 
                       // Dates details
                       Row(
@@ -198,7 +198,7 @@ class TaskDetailScreen extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const Divider(color: AppColors.surfaceLight),
+                      Divider(color: AppColors.surfaceLight),
                       const SizedBox(height: 16),
 
                       // Completion Photo section
@@ -269,12 +269,12 @@ class TaskDetailScreen extends StatelessWidget {
             height: 220,
             color: AppColors.surface,
             child: task.completionPhoto.isEmpty
-                ? const Center(
+                ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(Icons.image_not_supported_outlined, color: AppColors.textMuted, size: 48),
-                        SizedBox(height: 8),
+                        const SizedBox(height: 8),
                         Text('No completion photo uploaded', style: TextStyle(color: AppColors.textSecondary)),
                       ],
                     ),
@@ -311,12 +311,12 @@ class TaskDetailScreen extends StatelessWidget {
           ),
         );
       } else {
-        return const Center(
+        return Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.broken_image_outlined, color: AppColors.textMuted, size: 48),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               Text('Local image file missing', style: TextStyle(color: AppColors.textSecondary)),
             ],
           ),

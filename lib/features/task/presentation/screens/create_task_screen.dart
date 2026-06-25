@@ -10,6 +10,7 @@ import 'package:field_service_management_app/features/task/presentation/bloc/tas
 import 'package:field_service_management_app/features/task/presentation/bloc/task/task_state.dart';
 import 'package:field_service_management_app/features/task/domain/usecases/sync_tasks_usecase.dart';
 import 'package:field_service_management_app/injection_container.dart' as di;
+import 'package:field_service_management_app/features/task/presentation/bloc/theme/theme_cubit.dart';
 
 class CreateTaskScreen extends StatefulWidget {
   final TaskEntity? taskToEdit;
@@ -81,96 +82,181 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(isEditMode ? 'Edit Task' : 'Create Task'),
-      ),
-      body: BlocBuilder<TaskBloc, TaskState>(
-        builder: (context, state) {
-          List<Map<String, String>> agents = [];
-          if (state is TasksLoaded) {
-            agents = state.agents;
-          }
-
-          return Form(
-            key: _formKey,
-            child: ListView(
-              padding: const EdgeInsets.all(24.0),
-              children: [
-                TextFormField(
-                  controller: _titleController,
-                  validator: (v) => AppValidators.validateRequired(v, 'Title'),
-                  decoration: const InputDecoration(
-                    labelText: 'Task Title',
-                    prefixIcon: Icon(Icons.title, color: AppColors.textSecondary),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                TextFormField(
-                  controller: _descriptionController,
-                  validator: (v) => AppValidators.validateRequired(v, 'Description'),
-                  maxLines: 4,
-                  decoration: const InputDecoration(
-                    labelText: 'Task Description',
-                    prefixIcon: Padding(
-                      padding: EdgeInsets.only(bottom: 48.0),
-                      child: Icon(Icons.description, color: AppColors.textSecondary),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                // Priority Dropdown
-                DropdownButtonFormField<String>(
-                  value: _priority,
-                  decoration: const InputDecoration(
-                    labelText: 'Priority',
-                    prefixIcon: Icon(Icons.priority_high, color: AppColors.textSecondary),
-                  ),
-                  items: ['Low', 'Medium', 'High'].map((p) {
-                    return DropdownMenuItem(value: p, child: Text(p));
-                  }).toList(),
-                  onChanged: (val) {
-                    if (val != null) {
-                      setState(() {
-                        _priority = val;
-                      });
-                    }
-                  },
-                ),
-                const SizedBox(height: 20),
-                // Agent Dropdown
-                DropdownButtonFormField<String>(
-                  value: _assignedAgentId,
-                  decoration: const InputDecoration(
-                    labelText: 'Assign Agent',
-                    prefixIcon: Icon(Icons.person, color: AppColors.textSecondary),
-                  ),
-                  hint: const Text('Unassigned'),
-                  items: [
-                    const DropdownMenuItem<String>(value: null, child: Text('Unassigned')),
-                    ...agents.map((agent) {
-                      return DropdownMenuItem(
-                        value: agent['uid'],
-                        child: Text(agent['name'] ?? 'Agent'),
-                      );
-                    }),
-                  ],
-                  onChanged: (val) {
-                    setState(() {
-                      _assignedAgentId = val;
-                    });
-                  },
-                ),
-                const SizedBox(height: 40),
-                ElevatedButton(
-                  onPressed: _onSave,
-                  child: Text(isEditMode ? 'Save Changes' : 'Create Task'),
-                ),
-              ],
+    return BlocBuilder<ThemeCubit, ThemeMode>(
+      builder: (context, themeMode) {
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: AppBar(
+            backgroundColor: AppColors.background,
+            title: Text(isEditMode ? 'Edit Task' : 'Create Task'),
+          ),
+          body: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: AppColors.isDark
+                    ? [AppColors.background, const Color(0xFF0F172A).withOpacity(0.8)]
+                    : [AppColors.background, const Color(0xFFF1F5F9)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
             ),
-          );
-        },
-      ),
+            child: BlocBuilder<TaskBloc, TaskState>(
+              builder: (context, state) {
+                List<Map<String, String>> agents = [];
+                if (state is TasksLoaded) {
+                  agents = state.agents;
+                }
+
+                return Form(
+                  key: _formKey,
+                  child: ListView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20),
+                    children: [
+                      // Modern Card enclosing inputs
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: AppColors.surfaceLight.withOpacity(0.3),
+                            width: 1,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.02),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            TextFormField(
+                              controller: _titleController,
+                              validator: (v) => AppValidators.validateRequired(v, 'Title'),
+                              style: AppTextStyles.body.copyWith(fontWeight: FontWeight.bold),
+                              decoration: InputDecoration(
+                                labelText: 'Task Title',
+                                prefixIcon: Icon(Icons.title, color: AppColors.primaryLight, size: 20),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            TextFormField(
+                              controller: _descriptionController,
+                              validator: (v) => AppValidators.validateRequired(v, 'Description'),
+                              maxLines: 4,
+                              style: AppTextStyles.body,
+                              decoration: InputDecoration(
+                                labelText: 'Task Description',
+                                prefixIcon: Padding(
+                                  padding: const EdgeInsets.only(bottom: 60.0),
+                                  child: Icon(Icons.description_outlined, color: AppColors.primaryLight, size: 20),
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            // Priority Dropdown
+                            DropdownButtonFormField<String>(
+                              value: _priority,
+                              decoration: InputDecoration(
+                                labelText: 'Priority Level',
+                                prefixIcon: Icon(Icons.priority_high, color: AppColors.primaryLight, size: 20),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              dropdownColor: AppColors.surface,
+                              style: AppTextStyles.body.copyWith(fontWeight: FontWeight.bold),
+                              items: ['Low', 'Medium', 'High'].map((p) {
+                                return DropdownMenuItem(value: p, child: Text(p));
+                              }).toList(),
+                              onChanged: (val) {
+                                if (val != null) {
+                                  setState(() {
+                                    _priority = val;
+                                  });
+                                }
+                              },
+                            ),
+                            const SizedBox(height: 20),
+                            // Agent Dropdown
+                            DropdownButtonFormField<String>(
+                              value: _assignedAgentId,
+                              decoration: InputDecoration(
+                                labelText: 'Assign Agent',
+                                prefixIcon: Icon(Icons.person_outline, color: AppColors.primaryLight, size: 20),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              dropdownColor: AppColors.surface,
+                              style: AppTextStyles.body.copyWith(fontWeight: FontWeight.bold),
+                              hint: const Text('Unassigned'),
+                              items: [
+                                const DropdownMenuItem<String>(value: null, child: Text('Unassigned')),
+                                ...agents.map((agent) {
+                                  return DropdownMenuItem(
+                                    value: agent['uid'],
+                                    child: Text(agent['name'] ?? 'Agent'),
+                                  );
+                                }),
+                              ],
+                              onChanged: (val) {
+                                setState(() {
+                                  _assignedAgentId = val;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      
+                      // Premium Save Gradient Button
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: AppColors.primaryGradient,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withOpacity(0.35),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: ElevatedButton(
+                          onPressed: _onSave,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            foregroundColor: AppColors.white,
+                            minimumSize: const Size(double.infinity, 54),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            textStyle: AppTextStyles.button.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          child: Text(isEditMode ? 'Save Changes' : 'Create Task'),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 }

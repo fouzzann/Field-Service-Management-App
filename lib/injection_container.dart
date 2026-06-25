@@ -4,7 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'core/network/network_info.dart';
-import 'core/services/fcm_service.dart';
 import 'core/services/hive_service.dart';
 
 // Auth Feature
@@ -30,11 +29,9 @@ import 'features/task/domain/usecases/sync_tasks_usecase.dart';
 import 'features/task/domain/usecases/update_task_status_usecase.dart';
 import 'features/task/presentation/bloc/sync/sync_bloc.dart';
 import 'features/task/presentation/bloc/task/task_bloc.dart';
+import 'features/task/presentation/bloc/theme/theme_cubit.dart';
 
-// Notification Feature
-import 'features/notification/data/repositories/notification_repository_impl.dart';
-import 'features/notification/domain/repositories/notification_repository.dart';
-import 'features/notification/presentation/bloc/notification_bloc.dart';
+
 
 final sl = GetIt.instance;
 
@@ -78,6 +75,7 @@ Future<void> init() async {
         networkInfo: sl(),
         syncTasksUseCase: sl(),
       ));
+  sl.registerLazySingleton(() => ThemeCubit(sl()));
 
   // Use cases
   sl.registerLazySingleton(() => GetTasksUseCase(sl()));
@@ -91,7 +89,6 @@ Future<void> init() async {
         remoteDataSource: sl(),
         localDataSource: sl(),
         networkInfo: sl(),
-        notificationRepository: sl(),
       ));
 
   // Data Sources
@@ -102,25 +99,10 @@ Future<void> init() async {
   sl.registerLazySingleton<TaskLocalDataSource>(() => TaskLocalDataSourceImpl(sl()));
 
 
-  //! Features - Notification
-  // BLoC
-  sl.registerFactory(() => NotificationBloc(notificationRepository: sl()));
-
-  // Repository
-  sl.registerLazySingleton<NotificationRepository>(() => NotificationRepositoryImpl(
-        firestore: sl(),
-        fcmService: sl(),
-      ));
-
-
   //! Core / External
   final hiveService = HiveService();
   await hiveService.init();
   sl.registerLazySingleton(() => hiveService);
-
-  final fcmService = FCMService();
-  await fcmService.init();
-  sl.registerLazySingleton(() => fcmService);
 
   sl.registerLazySingleton(() => AuthService(
         firebaseAuth: sl(),

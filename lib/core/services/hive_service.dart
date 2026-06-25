@@ -10,6 +10,7 @@ class HiveService {
   static const String syncQueueBoxName = 'sync_queue_box';
   static const String pendingStatusUpdatesBoxName = 'pending_status_updates';
   static const String pendingPhotoUploadsBoxName = 'pending_photo_uploads';
+  static const String settingsBoxName = 'settings_box';
 
   Future<void> init() async {
     await Hive.initFlutter();
@@ -26,6 +27,7 @@ class HiveService {
     await Hive.openBox<SyncQueueItem>(syncQueueBoxName);
     await Hive.openBox<Map>(pendingStatusUpdatesBoxName);
     await Hive.openBox<Map>(pendingPhotoUploadsBoxName);
+    await Hive.openBox(settingsBoxName);
   }
 
   Box<UserModel> get userBox => Hive.box<UserModel>(userBoxName);
@@ -34,6 +36,7 @@ class HiveService {
   Box<SyncQueueItem> get syncQueueBox => Hive.box<SyncQueueItem>(syncQueueBoxName);
   Box<Map> get pendingStatusUpdatesBox => Hive.box<Map>(pendingStatusUpdatesBoxName);
   Box<Map> get pendingPhotoUploadsBox => Hive.box<Map>(pendingPhotoUploadsBoxName);
+  Box get settingsBox => Hive.box(settingsBoxName);
 
   Future<void> clearAll() async {
     await tasksBox.clear();
@@ -42,5 +45,6 @@ class HiveService {
     await tokenBox.clear();
     await pendingStatusUpdatesBox.clear();
     await pendingPhotoUploadsBox.clear();
+    await settingsBox.clear();
   }
 }
