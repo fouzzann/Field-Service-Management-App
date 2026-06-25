@@ -146,6 +146,11 @@ class _AgentTasksScreenState extends State<AgentTasksScreen> {
           isOnline = state.isOnline;
         } else if (state is SyncInProgress) {
           isSyncing = true;
+          isOnline = state.isOnline;
+        } else if (state is SyncSuccess) {
+          isOnline = state.isOnline;
+        } else if (state is SyncFailure) {
+          isOnline = state.isOnline;
         }
 
         return Container(
@@ -302,9 +307,18 @@ class _AgentTasksScreenState extends State<AgentTasksScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Updated: ${task.updatedAt.hour}:${task.updatedAt.minute.toString().padLeft(2, '0')}',
-                    style: AppTextStyles.caption,
+                  Builder(
+                    builder: (context) {
+                      final date = task.updatedAt;
+                      final period = date.hour >= 12 ? 'PM' : 'AM';
+                      final hour12 = date.hour % 12 == 0 ? 12 : date.hour % 12;
+                      final hourStr = hour12.toString().padLeft(2, '0');
+                      final minuteStr = date.minute.toString().padLeft(2, '0');
+                      return Text(
+                        'Updated: $hourStr:$minuteStr $period',
+                        style: AppTextStyles.caption,
+                      );
+                    },
                   ),
                   const Row(
                     children: [

@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:image_picker/image_picker.dart' show XFile;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import '../models/task_model.dart';
@@ -67,12 +69,17 @@ class TaskRemoteDataSourceImpl implements TaskRemoteDataSource {
 
   @override
   Future<String> uploadCompletionPhoto(String taskId, String localPath) async {
-    final file = File(localPath);
-    if (!await file.exists()) {
-      throw Exception('Photo file does not exist at $localPath');
-    }
     final ref = storage.ref().child('completion_photos').child('$taskId.jpg');
-    await ref.putFile(file);
+    if (kIsWeb) {
+      final bytes = await XFile(localPath).readAsBytes();
+      await ref.putData(bytes);
+    } else {
+      final file = File(localPath);
+      if (!await file.exists()) {
+        throw Exception('Photo file does not exist at $localPath');
+      }
+      await ref.putFile(file);
+    }
     return await ref.getDownloadURL();
   }
 }

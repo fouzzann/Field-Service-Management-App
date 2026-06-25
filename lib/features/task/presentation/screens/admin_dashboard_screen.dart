@@ -220,6 +220,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           isOnline = state.isOnline;
         } else if (state is SyncInProgress) {
           isSyncing = true;
+          isOnline = state.isOnline;
+        } else if (state is SyncSuccess) {
+          isOnline = state.isOnline;
+        } else if (state is SyncFailure) {
+          isOnline = state.isOnline;
         }
 
         return Container(

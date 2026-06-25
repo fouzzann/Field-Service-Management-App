@@ -9,17 +9,32 @@ abstract class SyncState extends Equatable {
 
 class SyncInitial extends SyncState {}
 
-class SyncInProgress extends SyncState {}
+class SyncInProgress extends SyncState {
+  final bool isOnline;
 
-class SyncSuccess extends SyncState {}
+  const SyncInProgress({this.isOnline = true});
+
+  @override
+  List<Object?> get props => [isOnline];
+}
+
+class SyncSuccess extends SyncState {
+  final bool isOnline;
+
+  const SyncSuccess({this.isOnline = true});
+
+  @override
+  List<Object?> get props => [isOnline];
+}
 
 class SyncFailure extends SyncState {
   final String message;
+  final bool isOnline;
 
-  const SyncFailure(this.message);
+  const SyncFailure(this.message, {this.isOnline = true});
 
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [message, isOnline];
 }
 
 class ConnectivityStatus extends SyncState {

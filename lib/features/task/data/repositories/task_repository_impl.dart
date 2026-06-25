@@ -63,26 +63,12 @@ class TaskRepositoryImpl implements TaskRepository {
       await localDataSource.cacheTask(task);
     }
 
-    // 2. Queue status update action
-    final statusItem = SyncQueueItem(
-      id: const Uuid().v4(),
-      taskId: taskId,
-      actionType: 'updateStatus',
-      payload: status,
-      timestamp: DateTime.now(),
-    );
-    await localDataSource.addToSyncQueue(statusItem);
+    // 2. Queue status update action in Hive
+    await localDataSource.addPendingStatusUpdate(taskId, status);
 
-    // 3. Queue photo upload action if provided
+    // 3. Queue photo upload action in Hive if provided
     if (localPhotoPath != null) {
-      final photoItem = SyncQueueItem(
-        id: const Uuid().v4(),
-        taskId: taskId,
-        actionType: 'uploadPhoto',
-        payload: localPhotoPath,
-        timestamp: DateTime.now(),
-      );
-      await localDataSource.addToSyncQueue(photoItem);
+      await localDataSource.addPendingPhotoUpload(taskId, localPhotoPath);
     }
 
     // 4. Trigger auto-sync if online
@@ -116,26 +102,34 @@ class TaskRepositoryImpl implements TaskRepository {
 
     // Yield firestore tasks merged with local updates (Conflict Resolution)
     yield* remoteDataSource.getTasksStream().asyncMap((remoteTasks) async {
-      final syncQueue = await localDataSource.getSyncQueue();
+      final pendingUpdates = await localDataSource.getPendingStatusUpdates();
+      final pendingUploads = await localDataSource.getPendingPhotoUploads();
       final merged = <TaskModel>[];
 
       for (var remoteTask in remoteTasks) {
         var finalTask = remoteTask;
 
-        // Apply Local Wins for status/completionPhoto if they are pending in local sync queue
-        final pendingActions = syncQueue.where((item) => item.taskId == remoteTask.taskId).toList();
-        if (pendingActions.isNotEmpty) {
-          String currentStatus = remoteTask.status;
-          String currentPhoto = remoteTask.completionPhoto;
+        // Apply Local Wins for status/completionPhoto if they are pending in local sync boxes
+        final pendingUpdate = pendingUpdates.firstWhere(
+          (item) => item['taskId'] == remoteTask.taskId && item['synced'] == false,
+          orElse: () => {},
+        );
+        final pendingUpload = pendingUploads.firstWhere(
+          (item) => item['taskId'] == remoteTask.taskId && item['synced'] == false,
+          orElse: () => {},
+        );
 
-          for (var action in pendingActions) {
-            if (action.actionType == 'updateStatus') {
-              currentStatus = action.payload;
-            } else if (action.actionType == 'uploadPhoto') {
-              currentPhoto = action.payload;
-            }
-          }
+        String currentStatus = remoteTask.status;
+        String currentPhoto = remoteTask.completionPhoto;
 
+        if (pendingUpdate.isNotEmpty) {
+          currentStatus = pendingUpdate['status'] as String;
+        }
+        if (pendingUpload.isNotEmpty) {
+          currentPhoto = pendingUpload['localPath'] as String;
+        }
+
+        if (pendingUpdate.isNotEmpty || pendingUpload.isNotEmpty) {
           finalTask = TaskModel(
             taskId: remoteTask.taskId,
             title: remoteTask.title,
@@ -175,71 +169,112 @@ class TaskRepositoryImpl implements TaskRepository {
     }
   }
 
+  bool _isSyncing = false;
+
   @override
   Future<void> syncOfflineTasks() async {
+    if (_isSyncing) return;
     if (!await networkInfo.isConnected) return;
+    _isSyncing = true;
 
-    final queue = await localDataSource.getSyncQueue();
-    if (queue.isEmpty) return;
+    try {
+      if (kDebugMode) print('Starting offline sync queue processing...');
 
-    for (final item in queue) {
-      try {
-        final cachedTasks = await localDataSource.getCachedTasks();
-        final taskIndex = cachedTasks.indexWhere((t) => t.taskId == item.taskId);
-        if (taskIndex == -1) {
-          // Task no longer exists in cache, remove action
-          await localDataSource.removeFromSyncQueue(item.id);
-          continue;
+      // 1. Process pending photo uploads
+      final pendingUploads = await localDataSource.getPendingPhotoUploads();
+      for (final upload in pendingUploads) {
+        if (upload['synced'] == true) continue;
+
+        final taskId = upload['taskId'] as String;
+        final localPath = upload['localPath'] as String;
+
+        try {
+          if (kDebugMode) {
+            print('Sync Queue [Photo]: Syncing photo upload for task $taskId with local path $localPath');
+          }
+
+          // Upload photo to Firebase Storage and get download URL
+          final downloadUrl = await remoteDataSource.uploadCompletionPhoto(taskId, localPath);
+
+          // Get latest cached task
+          final cachedTasks = await localDataSource.getCachedTasks();
+          final index = cachedTasks.indexWhere((t) => t.taskId == taskId);
+          if (index != -1) {
+            var task = cachedTasks[index];
+            task = TaskModel(
+              taskId: task.taskId,
+              title: task.title,
+              description: task.description,
+              priority: task.priority,
+              status: task.status,
+              assignedAgentId: task.assignedAgentId,
+              completionPhoto: downloadUrl,
+              createdAt: task.createdAt,
+              updatedAt: DateTime.now(),
+            );
+            await localDataSource.cacheTask(task);
+            await remoteDataSource.updateTask(task);
+          }
+
+          // Mark photo upload as synced and remove pending record
+          await localDataSource.markPhotoUploadSynced(taskId);
+          await localDataSource.removePendingPhotoUpload(taskId);
+          if (kDebugMode) {
+            print('Sync Queue [Photo]: Task $taskId photo sync success.');
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('Sync Queue [Photo]: Failed to sync photo upload for task $taskId: $e');
+          }
         }
-
-        var task = cachedTasks[taskIndex];
-
-        if (item.actionType == 'uploadPhoto') {
-          // 1. Upload photo to Firebase Storage
-          final downloadUrl = await remoteDataSource.uploadCompletionPhoto(item.taskId, item.payload);
-
-          // 2. Update task local model with URL
-          task = TaskModel(
-            taskId: task.taskId,
-            title: task.title,
-            description: task.description,
-            priority: task.priority,
-            status: task.status,
-            assignedAgentId: task.assignedAgentId,
-            completionPhoto: downloadUrl,
-            createdAt: task.createdAt,
-            updatedAt: DateTime.now(),
-          );
-          await localDataSource.cacheTask(task);
-
-          // 3. Sync to firestore
-          await remoteDataSource.updateTask(task);
-        } else if (item.actionType == 'updateStatus') {
-          // 1. Prepare updated model
-          task = TaskModel(
-            taskId: task.taskId,
-            title: task.title,
-            description: task.description,
-            priority: task.priority,
-            status: item.payload,
-            assignedAgentId: task.assignedAgentId,
-            completionPhoto: task.completionPhoto,
-            createdAt: task.createdAt,
-            updatedAt: DateTime.now(),
-          );
-          await localDataSource.cacheTask(task);
-
-          // 2. Sync to firestore
-          await remoteDataSource.updateTask(task);
-        }
-
-        // Remove successfully synced item from local queue
-        await localDataSource.removeFromSyncQueue(item.id);
-      } catch (e) {
-        if (kDebugMode) print('Failed to sync queue item ${item.id}: $e');
-        // Stop execution to preserve order of execution of queue (or keep retry on next online event)
-        break;
       }
+
+      // 2. Process pending status updates
+      final pendingUpdates = await localDataSource.getPendingStatusUpdates();
+      for (final update in pendingUpdates) {
+        if (update['synced'] == true) continue;
+
+        final taskId = update['taskId'] as String;
+        final status = update['status'] as String;
+
+        try {
+          if (kDebugMode) {
+            print('Sync Queue [Status]: Syncing status update for task $taskId to $status');
+          }
+
+          final cachedTasks = await localDataSource.getCachedTasks();
+          final index = cachedTasks.indexWhere((t) => t.taskId == taskId);
+          if (index != -1) {
+            var task = cachedTasks[index];
+            task = TaskModel(
+              taskId: task.taskId,
+              title: task.title,
+              description: task.description,
+              priority: task.priority,
+              status: status,
+              assignedAgentId: task.assignedAgentId,
+              completionPhoto: task.completionPhoto,
+              createdAt: task.createdAt,
+              updatedAt: DateTime.now(),
+            );
+            await localDataSource.cacheTask(task);
+            await remoteDataSource.updateTask(task);
+          }
+
+          // Mark status update as synced and remove pending record
+          await localDataSource.markStatusUpdateSynced(taskId);
+          await localDataSource.removePendingStatusUpdate(taskId);
+          if (kDebugMode) {
+            print('Sync Queue [Status]: Task $taskId status sync success.');
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('Sync Queue [Status]: Failed to sync status update for task $taskId: $e');
+          }
+        }
+      }
+    } finally {
+      _isSyncing = false;
     }
   }
 }

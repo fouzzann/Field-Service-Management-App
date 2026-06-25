@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
@@ -19,26 +20,74 @@ class TaskDetailScreen extends StatelessWidget {
 
   const TaskDetailScreen({super.key, required this.taskId});
 
-  Future<void> _captureCompletionPhoto(BuildContext context, TaskEntity task) async {
+  Future<void> _showPhotoSourceBottomSheet(BuildContext context, TaskEntity task) async {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (builderContext) {
+        return SafeArea(
+          child: Wrap(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  'Select Photo Proof Source',
+                  style: AppTextStyles.title.copyWith(fontSize: 18),
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt_outlined, color: AppColors.primaryLight),
+                title: const Text('Take Photo (Camera)', style: TextStyle(color: AppColors.textPrimary)),
+                onTap: () {
+                  Navigator.of(builderContext).pop();
+                  _pickCompletionPhoto(context, task, ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library_outlined, color: AppColors.primaryLight),
+                title: const Text('Choose from Gallery', style: TextStyle(color: AppColors.textPrimary)),
+                onTap: () {
+                  Navigator.of(builderContext).pop();
+                  _pickCompletionPhoto(context, task, ImageSource.gallery);
+                },
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _pickCompletionPhoto(BuildContext context, TaskEntity task, ImageSource source) async {
     try {
       final picker = ImagePicker();
       final XFile? image = await picker.pickImage(
-        source: ImageSource.camera,
+        source: source,
         imageQuality: 70, // Compressing for efficient offline storage
       );
 
       if (image != null) {
-        // Save file to permanent documents directory for offline resilience
-        final appDir = await getApplicationDocumentsDirectory();
-        final fileName = 'completion_${task.taskId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
-        final savedFile = await File(image.path).copy('${appDir.path}/$fileName');
+        String finalPath;
+        if (kIsWeb) {
+          finalPath = image.path; // On web, this is a blob URL
+        } else {
+          // Save file to permanent documents directory for offline resilience
+          final appDir = await getApplicationDocumentsDirectory();
+          final fileName = 'completion_${task.taskId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+          final savedFile = await File(image.path).copy('${appDir.path}/$fileName');
+          finalPath = savedFile.path;
+        }
 
         if (context.mounted) {
           context.read<TaskBloc>().add(
                 UpdateStatusEvent(
                   taskId: task.taskId,
                   status: 'Completed',
-                  localPhotoPath: savedFile.path,
+                  localPhotoPath: finalPath,
                 ),
               );
         }
@@ -47,7 +96,7 @@ class TaskDetailScreen extends StatelessWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error capturing photo: $e'),
+            content: Text('Error selecting photo: $e'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -188,7 +237,11 @@ class TaskDetailScreen extends StatelessWidget {
   }
 
   Widget _buildDateDetail(String label, DateTime date) {
-    final dateString = '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
+    final period = date.hour >= 12 ? 'PM' : 'AM';
+    final hour12 = date.hour % 12 == 0 ? 12 : date.hour % 12;
+    final hourStr = hour12.toString().padLeft(2, '0');
+    final minuteStr = date.minute.toString().padLeft(2, '0');
+    final dateString = '${date.day}/${date.month}/${date.year} $hourStr:$minuteStr $period';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -235,7 +288,7 @@ class TaskDetailScreen extends StatelessWidget {
   }
 
   Widget _loadImage(String photoPath) {
-    if (photoPath.startsWith('http') || photoPath.startsWith('https')) {
+    if (kIsWeb || photoPath.startsWith('http') || photoPath.startsWith('https') || photoPath.startsWith('blob:')) {
       return Image.network(
         photoPath,
         fit: BoxFit.cover,
@@ -364,7 +417,7 @@ class TaskDetailScreen extends StatelessWidget {
               );
         } else {
           // In Progress -> Capturing photo first, then transitions to Completed
-          _captureCompletionPhoto(context, task);
+          _showPhotoSourceBottomSheet(context, task);
         }
       },
       icon: Icon(isPending ? Icons.play_arrow : Icons.camera_alt),

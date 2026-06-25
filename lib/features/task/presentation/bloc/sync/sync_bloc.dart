@@ -40,7 +40,8 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
     ConnectionChanged event,
     Emitter<SyncState> emit,
   ) async {
-    final isOnline = event.connectionResults.any((result) => result != ConnectivityResult.none);
+    // Check actual connectivity to handle virtual network adapters properly
+    final isOnline = await networkInfo.isConnected;
     emit(ConnectivityStatus(isOnline: isOnline));
 
     if (isOnline) {
@@ -59,16 +60,18 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
   ) async {
     final isOnline = await networkInfo.isConnected;
     if (!isOnline) {
-      emit(const SyncFailure('Cannot sync: device is offline.'));
+      emit(const SyncFailure('Cannot sync: device is offline.', isOnline: false));
       return;
     }
 
-    emit(SyncInProgress());
+    emit(const SyncInProgress(isOnline: true));
     try {
       await syncTasksUseCase();
-      emit(SyncSuccess());
+      emit(const SyncSuccess(isOnline: true));
     } catch (e) {
-      emit(SyncFailure(e.toString()));
+      // Re-verify if we actually lost connection during the sync failure
+      final stillOnline = await networkInfo.isConnected;
+      emit(SyncFailure(e.toString(), isOnline: stillOnline));
     }
   }
 

@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 abstract class NetworkInfo {
@@ -13,7 +15,20 @@ class NetworkInfoImpl implements NetworkInfo {
   @override
   Future<bool> get isConnected async {
     final result = await connectivity.checkConnectivity();
-    return result.any((element) => element != ConnectivityResult.none);
+    if (result.isEmpty || result.any((element) => element == ConnectivityResult.none)) {
+      return false;
+    }
+    if (kIsWeb) {
+      return true;
+    } else {
+      try {
+        final lookup = await InternetAddress.lookup('google.com')
+            .timeout(const Duration(seconds: 2));
+        return lookup.isNotEmpty && lookup[0].rawAddress.isNotEmpty;
+      } catch (_) {
+        return false;
+      }
+    }
   }
 
   @override
