@@ -1,0 +1,38 @@
+import 'package:hive_flutter/hive_flutter.dart';
+import '../../features/auth/data/models/user_model.dart';
+import '../../features/task/data/models/task_model.dart';
+import '../../features/task/data/models/sync_queue_item.dart';
+
+class HiveService {
+  static const String userBoxName = 'user_box';
+  static const String tokenBoxName = 'token_box';
+  static const String tasksBoxName = 'tasks_box';
+  static const String syncQueueBoxName = 'sync_queue_box';
+
+  Future<void> init() async {
+    await Hive.initFlutter();
+
+    // Register manual TypeAdapters
+    Hive.registerAdapter(UserAdapter());
+    Hive.registerAdapter(TaskAdapter());
+    Hive.registerAdapter(SyncQueueItemAdapter());
+
+    // Open standard boxes
+    await Hive.openBox<UserModel>(userBoxName);
+    await Hive.openBox<String>(tokenBoxName);
+    await Hive.openBox<TaskModel>(tasksBoxName);
+    await Hive.openBox<SyncQueueItem>(syncQueueBoxName);
+  }
+
+  Box<UserModel> get userBox => Hive.box<UserModel>(userBoxName);
+  Box<String> get tokenBox => Hive.box<String>(tokenBoxName);
+  Box<TaskModel> get tasksBox => Hive.box<TaskModel>(tasksBoxName);
+  Box<SyncQueueItem> get syncQueueBox => Hive.box<SyncQueueItem>(syncQueueBoxName);
+
+  Future<void> clearAll() async {
+    await tasksBox.clear();
+    await syncQueueBox.clear();
+    await userBox.clear();
+    await tokenBox.clear();
+  }
+}

@@ -38,16 +38,25 @@ dependencies:
   firebase_auth: ^6.5.4
   cloud_firestore: ^6.6.0
   firebase_messaging: ^16.4.1
+  firebase_storage: any
+  flutter_bloc: ^8.1.6
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  connectivity_plus: ^6.1.0
+  image_picker: ^1.1.2
+  fl_chart: ^0.69.0
+  equatable: ^2.0.5
+  get_it: ^7.7.0
+  uuid: ^4.3.3
+  path_provider: ^2.1.3
+  http: ^1.2.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  bloc_test: any
+  mocktail: any
 
-  # The "flutter_lints" package below contains a set of recommended lints to
-  # encourage good coding practices. The lint set provided by the package is
-  # activated in the `analysis_options.yaml` file located at the root of your
-  # package. See that file for information about deactivating specific lint
-  # rules and activating additional ones.
   flutter_lints: ^6.0.0
 
 # For information on the generic Dart part of this file, see the
