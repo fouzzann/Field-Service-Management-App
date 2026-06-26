@@ -1,127 +1,126 @@
-# Field Service Management App
+# 📱 Field Service Management App
 
-A production-ready Flutter application built using **Clean Architecture** and **BLoC State Management**. The app empowers Admins to assign tasks to Field Agents in real time, and enables agents to update progress and upload completion proofs with full offline resilience.
+<p align="center">
+  <img src="https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter&style=for-the-badge" alt="Flutter Badge"/>
+  <img src="https://img.shields.io/badge/Dart-3.x-0175C2?logo=dart&style=for-the-badge" alt="Dart Badge"/>
+  <img src="https://img.shields.io/badge/Firebase-Suite-FFCA28?logo=firebase&logoColor=black&style=for-the-badge" alt="Firebase Badge"/>
+  <img src="https://img.shields.io/badge/Architecture-Clean%20%2B%20MVVM-green?style=for-the-badge" alt="Clean MVVM Architecture Badge"/>
+  <img src="https://img.shields.io/badge/Offline-Resilient%20(Hive)-blueviolet?style=for-the-badge" alt="Offline Resilient Hive Badge"/>
+</p>
 
----
-
-## Technical Stack
-- **Framework**: Flutter & Dart (Null-safety compliant)
-- **State Management**: BLoC (`flutter_bloc`)
-- **Dependency Injection**: GetIt (`get_it`)
-- **Local Cache & Queue**: Hive (`hive`, `hive_flutter`)
-- **Connectivity Monitoring**: Connectivity Plus (`connectivity_plus`)
-- **Network Request & Assets**: http (`http`), Image Picker (`image_picker`)
-- **Data Visualization**: fl_chart (`fl_chart`)
-- **Cloud Backend**: Firebase Core, Auth, Cloud Firestore, and Storage
+A next-generation, production-grade Field Service Management solution built using **Clean Architecture** and the **MVVM (Model-View-ViewModel)** presentation pattern. Empowered with reactive **BLoC/Cubit state management**, the system enables seamless real-time task allocations from Admins to Agents, offline-first progress logging, media capture uploads, and instant synchronization.
 
 ---
 
-## Project Setup
+## 🚀 Key Features & Capabilities
 
-### Prerequisites
-1. Install [Flutter SDK](https://flutter.dev/docs/get-started/install) (version `>= 3.12.1` recommended).
-2. Install [Cocoapods](https://cocoapods.org/) (if running on macOS/iOS).
-3. Ensure Android SDK/Xcode is configured.
+| Module | Feature | Capability |
+| :--- | :--- | :--- |
+| 🔑 **Security** | Auth & Session | Secure Firebase Auth logins, session persistence, and instant logout confirmation. |
+| 📋 **Task Engine** | Task Allocations | High-performance task creation, editing, status tracking, and priority tagging. |
+| 📴 **Offline Sync** | Offline Resilience | Instant local cache (Hive) writes, a structured queue manager, and auto-sync on connectivity. |
+| 🔔 **Alerts** | FCM Push Alerts | Instant task assignment foreground/background pushes with deep-linked navigation. |
+| 📊 **Analytics** | Metrics Dashboard | Dynamic charts (fl_chart) showing status distribution and agent task completion status. |
+| 🎨 **UI / UX** | Premium Design | Stunning dark-mode support, modern custom text inputs, and smooth transitions. |
 
-### Configuration
-Firebase configuration is already fully loaded in [firebase_options.dart](lib/firebase_options.dart) for Android, iOS, macOS, and Windows platforms. 
+---
 
-1. Ensure the following Firestore collections are set up in your Firebase project:
-   - **`users`**: profile documents mapping credentials to roles.
-   - **`tasks`**: documents representing service tasks.
-2. Enable **Firebase Authentication** (Email & Password provider).
-3. Enable **Firebase Storage** (for uploading completion photo attachments).
+## 🏗️ Architectural Blueprint
 
-### Installation
-Clone the repository and run:
-```bash
-flutter pub get
+The application is structured into decoupled layers, enforcing the dependency rule: **inner layers have no knowledge of outer layers**.
+
+```mermaid
+flowchart TD
+    %% Define Nodes
+    View["📱 View Layer (UI / Widgets)"]
+    VM["⚙️ ViewModel (ChangeNotifier)"]
+    Cubit["🔄 Cubits (State Streams)"]
+    UC["⚡ Use Cases (Business Actions)"]
+    RepoI["📄 Repository Interfaces (Contracts)"]
+    RepoImpl["💾 Repository Implementation"]
+    RemoteDS["🌐 Remote Source (Firestore/FCM)"]
+    LocalDS["💾 Local Source (Hive Cache)"]
+
+    %% Define Relationships
+    View -->|listens & binds| VM
+    VM -->|interacts & triggers| Cubit
+    Cubit -->|calls| UC
+    UC -->|accesses abstract| RepoI
+    RepoImpl -.->|implements| RepoI
+    RepoImpl -->|fetches / posts| RemoteDS
+    RepoImpl -->|reads / writes| LocalDS
 ```
 
-### Running Tests
-Execute the BLoC test suite (10 unit tests covering `AuthBloc`, `TaskBloc`, and `SyncBloc` with mock providers):
-```bash
-flutter test
-```
+### 🧱 Architectural Layer Breakdown
 
-### Running the App
-Run on your connected emulator or device:
-```bash
-flutter run
-```
+*   **`Domain Layer` (Independent Core)**: Defines structural entities, business execution protocols (`Use Cases`), and abstraction boundaries (`Repository Interfaces`). It contains no dependencies on external APIs or UI packages.
+*   **`Data Layer` (Infrastructure & Details)**: Handles raw API communications (Firestore, Storage, FCM), manages the offline Hive box database caches, translates entity objects (`Mappers`), and fulfills domain repository contracts.
+*   **`Presentation Layer` (MVVM & Reactive State)**:
+    *   **Views / Pages**: Pure layouts that bind to ViewModels and listen to Cubit state emissions.
+    *   **ViewModels (`ChangeNotifier`)**: Coordinate page life-cycles, manage UI controllers, perform local form validations, and call Cubit actions.
+    *   **Cubits (`Cubit`)**: State streams that manage data flows (e.g. auth flows, tasks lists, sync queues) across views.
 
 ---
 
-## Folder Structure
+## 🛠️ Project Setup & Run Guide
 
-Following **Clean Architecture** patterns, the code is structured by feature layer:
-```
-lib/
-├── core/
-│   ├── network/         # Internet connection monitoring (NetworkInfo)
-│   ├── services/        # Hive initialization & Firebase Cloud Messaging setup
-│   ├── theme/           # App dark theme configuration
-│   ├── utils/           # Shared static colors, styles, dimensions, and validators
-│   └── widgets/         # Reusable widgets (Loading, ErrorState, EmptyState)
-├── features/
-│   ├── auth/            # Authentication Feature
-│   │   ├── data/        # User models, Local/Remote datasources, and Repo implementation
-│   │   ├── domain/      # User entities, Repo interfaces, and Use Cases (Login, Logout)
-│   │   └── presentation/# AuthBloc, LoginScreen, and ProfileScreen
-│   ├── task/            # Task Management Feature
-│   │   ├── data/        # Task & SyncQueue data models, local/remote sources, repo impl
-│   │   ├── domain/      # Task entities, Use Cases (Create, Update, Sync, Delete)
-│   │   └── presentation/# Task & Sync BLoCs, Dashboard, Create Task, Task List/Details Screens
-│   └── notification/    # FCM Notification triggers and token updates
-│       ├── data/        # FCM token sync and client-side notifications
-│       └── presentation/# NotificationBloc
-├── injection_container.dart # GetIt Service Locator registrations
-└── main.dart            # App entry point, MultiBlocProvider, and FCM tap router
-```
+### 📋 Prerequisites
+*   [Flutter SDK](https://flutter.dev/docs/get-started/install) (version `>= 3.12.1` recommended)
+*   CocoaPods (required for iOS runtime builds)
+*   Active Android SDK / Xcode toolchain config
 
----
+### ⚙️ Firebase Setup
+Firebase configuration is fully mapped in [firebase_options.dart](lib/firebase_options.dart).
 
-## Architecture Explanation
+1.  Enable **Firebase Authentication** (Email & Password login provider).
+2.  Set up **Cloud Firestore** and create the following collections:
+    *   `users`: Documents mapped by user UID holding `name`, `email`, and `role` (e.g., `admin`, `agent`).
+    *   `tasks`: Service tickets containing details, status (`Pending`, `In Progress`, `Completed`), and `assignedAgentId`.
+3.  Enable **Firebase Storage** (for completion image uploads).
 
-This application conforms to **SOLID Principles** and **Clean Architecture**:
-1. **Domain Layer (Independent)**: Contains the pure business logic, defining the structural data representation (`Entities`), actions (`Use Cases`), and abstract repository boundaries (`Repositories`). It is completely independent of external dependencies or UI frameworks.
-2. **Data Layer (Implementation)**: Implements repository contracts, managing interactions with local database sources (Hive) and external APIs (Firebase Auth, Cloud Firestore, Firebase Storage, and FCM API). It maps Firestore records and local bytes to concrete data transfer objects (`Models`).
-3. **Presentation Layer (UI & Controllers)**: Manages layout renders and listens to user inputs. State transformations are handled reactively by BLoCs (`AuthBloc`, `TaskBloc`, `SyncBloc`, `NotificationBloc`) to guarantee that **no business logic resides inside widgets**.
+### 🚀 Running the Project
+1.  Install packages and dependencies:
+    ```bash
+    flutter pub get
+    ```
+2.  Run the test suite (13 unit tests verifying Cubits and ViewModels):
+    ```bash
+    flutter test
+    ```
+3.  Launch the application:
+    ```bash
+    flutter run
+    ```
 
 ---
 
-## Offline Sync & Conflict Resolution Strategy
+## 🔄 Offline Synchronization & Conflict Management
 
-### Offline Storage (Hive Caching)
-- When the device goes offline, tasks are read from and written to Hive (`tasks_box`).
-- When an agent updates a task status or saves a local photo path, the app updates the local cache immediately (providing an instantaneous user experience) and writes the actions into an offline queue (`sync_queue_box`) chronologically.
-- Locally captured completion photos are copied from temporary cache into the app's persistent documents directory to ensure they remain safe and accessible across app launches while waiting for connection.
+### 📂 Offline Storage Strategy
+*   All data queries yield locally cached Hive data first, ensuring instant startup times.
+*   Task status changes or image captures are queued chronologically (`pendingStatusUpdatesBox`, `pendingPhotoUploadsBox`) and updated locally for immediate UI response.
+*   Captured photos are cloned into the app's persistent document directory to protect them from temporary OS caches.
 
-### Reconnection Synchronization
-- The `SyncBloc` listens to connectivity changes.
-- Upon network restoration, the sync engine processes queue actions sequentially:
-  1. For `uploadPhoto` actions, it reads the local photo from documents directory, uploads it to Firebase Storage, updates the local cache with the remote download URL, and writes the URL to Firestore.
-  2. For `updateStatus` actions, it updates the task status in Firestore.
-  3. Successfully synced actions are purged from the queue box.
-
-### Conflict Resolution Matrix
-When Firestore updates are streamed to the client while offline operations are pending:
-- **Server Wins (Structural Data)**: Task details (Title, Description, Priority, and assigned Agent) pushed from the server will override local files to guarantee organizational alignment.
-- **Local Wins (Latest Status & Photo Proof)**: If the local sync queue has a pending status update or photo proof for a task, the server's status and photo properties are ignored. The local modifications are preserved until the offline changes are synchronized.
+> [!TIP]
+> **Conflict Resolution Model:**
+> *   **Server Wins**: In the case of core task updates (title, description, details), Firestore updates immediately override local records.
+> *   **Local Wins**: If a local action is in queue (status/photo updates), the local properties are preserved over incoming server updates until the queue syncs.
 
 ---
 
-## Firebase Cloud Messaging (FCM) Integration
+## ⚖️ Architectural Trade-offs & Assumptions
 
-- **Token Registration**: Upon successful login, the app fetches the device's FCM registration token and saves it in the user's Firestore document.
-- **Foreground & Background Listeners**: Foreground listeners catch incoming pushes, while background taps register via `onMessageOpenedApp` and `getInitialMessage`.
-- **Navigation Redirections**: Tapping a task assignment push notification streams the payload `taskId` directly to `main.dart`, which pushes the `TaskDetailScreen` onto the navigator stack instantly.
-- **Client Push Triggers**: When an Admin creates or assigns a task, the Admin app posts a notification request to the FCM API, ensuring the assigned Agent receives a push notification on their device instantly.
+> [!IMPORTANT]
+> **1. Prevent Offline Logins**
+> *   **Decision**: Direct login attempts are rejected when the device is offline.
+> *   **Trade-off**: Offline login is blocked to prevent mismatched user IDs (UIDs). Allowing offline fallbacks generates mock UIDs (e.g., `mock_uid_...`) which create duplicate user profiles (e.g., `Agent One` vs `AGENT1`) in Firestore and leads to empty/missing task lists due to ID mismatches. Already logged-in users are kept active via the local cache and can continue working offline.
 
----
+> [!WARNING]
+> **2. Client-Side FCM Triggering**
+> *   **Decision**: Push notifications are posted directly from the Admin app client code.
+> *   **Trade-off**: To ensure FCM security and prevent bundling Server Keys on client binaries, this trigger pipeline must be migrated to Firebase Cloud Functions or a secure backend system before a production release.
 
-## Trade-offs and Assumptions
-
-1. **FCM Key Simulation**: Direct client-side FCM posts use a mock key endpoint. For actual production releases, these triggers should be sent from Firebase Cloud Functions or a secure backend environment to avoid exposing Firebase Server Keys.
-2. **Sequential Queue Blocking**: To ensure strict state flow compliance (`Pending` -> `In Progress` -> `Completed`), any sync failure on an action pauses processing of the remaining queue items. Re-evaluation is scheduled on the next network transition.
-3. **Manual TypeAdapters**: We manually implemented Hive TypeAdapters instead of utilizing `hive_generator` to completely bypass dependency analyzer version mismatches with newer Flutter test frameworks, resulting in clean, robust code without code generators.
+> [!NOTE]
+> **3. Hand-written Hive Adapters**
+> *   **Decision**: Hive adapters are written manually instead of using code generation (`hive_generator`).
+> *   **Trade-off**: Manual writing requires maintaining model indexes, but it keeps the compiler dependency tree lightweight and prevents version conflicts between analyzer tools and unit test suites.
