@@ -8,8 +8,6 @@ import 'package:field_service_management_app/features/task/domain/entities/task_
 import 'package:field_service_management_app/features/task/presentation/bloc/task/task_bloc.dart';
 import 'package:field_service_management_app/features/task/presentation/bloc/task/task_event.dart';
 import 'package:field_service_management_app/features/task/presentation/bloc/task/task_state.dart';
-import 'package:field_service_management_app/features/task/domain/usecases/sync_tasks_usecase.dart';
-import 'package:field_service_management_app/injection_container.dart' as di;
 import 'package:field_service_management_app/features/task/presentation/bloc/theme/theme_cubit.dart';
 
 class CreateTaskScreen extends StatefulWidget {
@@ -94,7 +92,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: AppColors.isDark
-                    ? [AppColors.background, const Color(0xFF0F172A).withOpacity(0.8)]
+                    ? [AppColors.background, const Color(0xFF0F172A).withValues(alpha: 0.8)]
                     : [AppColors.background, const Color(0xFFF1F5F9)],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -119,12 +117,12 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                           color: AppColors.surface,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: AppColors.surfaceLight.withOpacity(0.3),
+                            color: AppColors.surfaceLight.withValues(alpha: 0.3),
                             width: 1,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.02),
+                              color: Colors.black.withValues(alpha: 0.02),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -164,7 +162,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                             const SizedBox(height: 20),
                             // Priority Dropdown
                             DropdownButtonFormField<String>(
-                              value: _priority,
+                              initialValue: _priority,
                               decoration: InputDecoration(
                                 labelText: 'Priority Level',
                                 prefixIcon: Icon(Icons.priority_high, color: AppColors.primaryLight, size: 20),
@@ -188,7 +186,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                             const SizedBox(height: 20),
                             // Agent Dropdown
                             DropdownButtonFormField<String>(
-                              value: _assignedAgentId,
+                              initialValue: _assignedAgentId,
                               decoration: InputDecoration(
                                 labelText: 'Assign Agent',
                                 prefixIcon: Icon(Icons.person_outline, color: AppColors.primaryLight, size: 20),
@@ -226,7 +224,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primary.withOpacity(0.35),
+                              color: AppColors.primary.withValues(alpha: 0.35),
                               blurRadius: 12,
                               offset: const Offset(0, 4),
                             ),

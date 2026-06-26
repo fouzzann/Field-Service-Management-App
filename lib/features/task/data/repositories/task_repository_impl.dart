@@ -1,12 +1,10 @@
 import 'package:flutter/foundation.dart';
-import 'package:uuid/uuid.dart';
 import '../../../../core/network/network_info.dart';
 import '../../domain/entities/task_entity.dart';
 import '../../domain/repositories/task_repository.dart';
 import '../datasources/task_local_data_source.dart';
 import '../datasources/task_remote_data_source.dart';
 import '../models/task_model.dart';
-import '../models/sync_queue_item.dart';
 
 class TaskRepositoryImpl implements TaskRepository {
   final TaskRemoteDataSource remoteDataSource;
@@ -182,7 +180,6 @@ class TaskRepositoryImpl implements TaskRepository {
 
       final pendingUpdates = await localDataSource.getPendingStatusUpdates();
       final pendingUploads = await localDataSource.getPendingPhotoUploads();
-      final hadPendingChanges = pendingUpdates.isNotEmpty || pendingUploads.isNotEmpty;
 
       // 1. Process pending photo uploads
       for (final upload in pendingUploads) {

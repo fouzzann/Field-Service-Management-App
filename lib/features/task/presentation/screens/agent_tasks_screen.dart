@@ -70,7 +70,7 @@ class _AgentTasksScreenState extends State<AgentTasksScreen> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: AppColors.isDark
-                    ? [AppColors.background, const Color(0xFF0F172A).withOpacity(0.8)]
+                    ? [AppColors.background, const Color(0xFF0F172A).withValues(alpha: 0.8)]
                     : [AppColors.background, const Color(0xFFF1F5F9)],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -139,7 +139,7 @@ class _AgentTasksScreenState extends State<AgentTasksScreen> {
                               icon: Icons.assignment_turned_in_outlined,
                             )
                           else
-                            ...myTasks.map((task) => _buildTaskCard(context, task)).toList(),
+                            ...myTasks.map((task) => _buildTaskCard(context, task)),
                           const SizedBox(height: 20),
                         ],
                       ),
@@ -162,12 +162,12 @@ class _AgentTasksScreenState extends State<AgentTasksScreen> {
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.surfaceLight.withOpacity(0.3),
+          color: AppColors.surfaceLight.withValues(alpha: 0.3),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -178,7 +178,7 @@ class _AgentTasksScreenState extends State<AgentTasksScreen> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.12),
+              color: AppColors.primary.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -252,12 +252,12 @@ class _AgentTasksScreenState extends State<AgentTasksScreen> {
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.surfaceLight.withOpacity(0.3),
+          color: AppColors.surfaceLight.withValues(alpha: 0.3),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -272,7 +272,7 @@ class _AgentTasksScreenState extends State<AgentTasksScreen> {
               Container(
                 padding: const EdgeInsets.all(5),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.08),
+                  color: color.withValues(alpha: 0.08),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon, color: color, size: 14),
@@ -326,10 +326,10 @@ class _AgentTasksScreenState extends State<AgentTasksScreen> {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: bannerColor.withOpacity(0.08),
+            color: bannerColor.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: bannerColor.withOpacity(0.35),
+              color: bannerColor.withValues(alpha: 0.35),
               width: 1.2,
             ),
           ),
@@ -338,7 +338,7 @@ class _AgentTasksScreenState extends State<AgentTasksScreen> {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: bannerColor.withOpacity(0.12),
+                  color: bannerColor.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -372,7 +372,7 @@ class _AgentTasksScreenState extends State<AgentTasksScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    backgroundColor: AppColors.statusPending.withOpacity(0.15),
+                    backgroundColor: AppColors.statusPending.withValues(alpha: 0.15),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -430,12 +430,12 @@ class _AgentTasksScreenState extends State<AgentTasksScreen> {
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.surfaceLight.withOpacity(0.3),
+          color: AppColors.surfaceLight.withValues(alpha: 0.3),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -461,10 +461,10 @@ class _AgentTasksScreenState extends State<AgentTasksScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.1),
+                        color: statusColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: statusColor.withOpacity(0.4),
+                          color: statusColor.withValues(alpha: 0.4),
                           width: 1,
                         ),
                       ),
@@ -479,10 +479,10 @@ class _AgentTasksScreenState extends State<AgentTasksScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
-                        color: priorityColor.withOpacity(0.1),
+                        color: priorityColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: priorityColor.withOpacity(0.4),
+                          color: priorityColor.withValues(alpha: 0.4),
                           width: 1,
                         ),
                       ),
@@ -514,7 +514,7 @@ class _AgentTasksScreenState extends State<AgentTasksScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                Divider(color: AppColors.surfaceLight.withOpacity(0.4), height: 1),
+                Divider(color: AppColors.surfaceLight.withValues(alpha: 0.4), height: 1),
                 const SizedBox(height: 14),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,

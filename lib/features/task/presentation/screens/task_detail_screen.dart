@@ -14,6 +14,7 @@ import 'package:field_service_management_app/features/task/presentation/bloc/tas
 import 'package:field_service_management_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:field_service_management_app/features/auth/presentation/bloc/auth_state.dart';
 import 'package:field_service_management_app/features/task/presentation/screens/create_task_screen.dart';
+import 'package:field_service_management_app/features/task/presentation/bloc/theme/theme_cubit.dart';
 
 class TaskDetailScreen extends StatelessWidget {
   final String taskId;
@@ -32,23 +33,37 @@ class TaskDetailScreen extends StatelessWidget {
           child: Wrap(
             children: [
               Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(20.0),
                 child: Text(
                   'Select Photo Proof Source',
                   style: AppTextStyles.title.copyWith(fontSize: 18),
                 ),
               ),
               ListTile(
-                leading: const Icon(Icons.camera_alt_outlined, color: AppColors.primaryLight),
-                title: Text('Take Photo (Camera)', style: TextStyle(color: AppColors.textPrimary)),
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.camera_alt_outlined, color: AppColors.primaryLight, size: 20),
+                ),
+                title: Text('Take Photo (Camera)', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
                 onTap: () {
                   Navigator.of(builderContext).pop();
                   _pickCompletionPhoto(context, task, ImageSource.camera);
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.photo_library_outlined, color: AppColors.primaryLight),
-                title: Text('Choose from Gallery', style: TextStyle(color: AppColors.textPrimary)),
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.photo_library_outlined, color: AppColors.primaryLight, size: 20),
+                ),
+                title: Text('Choose from Gallery', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
                 onTap: () {
                   Navigator.of(builderContext).pop();
                   _pickCompletionPhoto(context, task, ImageSource.gallery);
@@ -67,15 +82,14 @@ class TaskDetailScreen extends StatelessWidget {
       final picker = ImagePicker();
       final XFile? image = await picker.pickImage(
         source: source,
-        imageQuality: 70, // Compressing for efficient offline storage
+        imageQuality: 70,
       );
 
       if (image != null) {
         String finalPath;
         if (kIsWeb) {
-          finalPath = image.path; // On web, this is a blob URL
+          finalPath = image.path;
         } else {
-          // Save file to permanent documents directory for offline resilience
           final appDir = await getApplicationDocumentsDirectory();
           final fileName = 'completion_${task.taskId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
           final savedFile = await File(image.path).copy('${appDir.path}/$fileName');
@@ -114,117 +128,212 @@ class TaskDetailScreen extends StatelessWidget {
     }
     final user = authState.user;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Task Details'),
-      ),
-      body: BlocBuilder<TaskBloc, TaskState>(
-        builder: (context, state) {
-          if (state is TasksLoaded) {
-            final taskIndex = state.allTasks.indexWhere((t) => t.taskId == taskId);
-            if (taskIndex == -1) {
-              return const Center(child: Text('Task not found. It may have been deleted.'));
-            }
-            final task = state.allTasks[taskIndex];
-            final agentName = state.agents.firstWhere(
-              (a) => a['uid'] == task.assignedAgentId,
-              orElse: () => {'name': 'Unassigned'},
-            )['name']!;
+    return BlocBuilder<ThemeCubit, ThemeMode>(
+      builder: (context, themeState) {
+        final isDark = AppColors.isDark;
+        
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: AppBar(
+            backgroundColor: AppColors.background,
+            title: const Text('Task Details'),
+          ),
+          body: Container(
+            height: double.infinity,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: isDark
+                    ? [AppColors.background, const Color(0xFF0F172A).withValues(alpha: 0.8)]
+                    : [AppColors.background, const Color(0xFFF1F5F9)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
+            child: BlocBuilder<TaskBloc, TaskState>(
+              builder: (context, state) {
+                if (state is TasksLoaded) {
+                  final taskIndex = state.allTasks.indexWhere((t) => t.taskId == taskId);
+                  if (taskIndex == -1) {
+                    return const Center(child: Text('Task not found. It may have been deleted.'));
+                  }
+                  final task = state.allTasks[taskIndex];
+                  final agentName = state.agents.firstWhere(
+                    (a) => a['uid'] == task.assignedAgentId,
+                    orElse: () => {'name': 'Unassigned'},
+                  )['name']!;
 
-            return Column(
-              children: [
-                Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.all(24.0),
+                  return Column(
                     children: [
-                      // Header: Priority & Status Row
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _buildBadge(
-                            task.status,
-                            _getStatusColor(task.status),
-                          ),
-                          _buildBadge(
-                            '${task.priority} Priority',
-                            _getPriorityColor(task.priority),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
+                      Expanded(
+                        child: ListView(
+                          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+                          children: [
+                            // Header: Priority & Status Row
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                _buildBadge(
+                                  task.status,
+                                  _getStatusColor(task.status),
+                                ),
+                                _buildBadge(
+                                  '${task.priority} Priority',
+                                  _getPriorityColor(task.priority),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 24),
 
-                      // Title
-                      Text(task.title, style: AppTextStyles.heading2),
-                      const SizedBox(height: 16),
+                            // Main Title Card
+                            Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: AppColors.surface,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: AppColors.surfaceLight.withValues(alpha: 0.3),
+                                  width: 1,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.03),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    task.title,
+                                    style: AppTextStyles.title.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20,
+                                      letterSpacing: -0.3,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 14),
+                                  Text(
+                                    'Description',
+                                    style: AppTextStyles.caption.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    task.description,
+                                    style: AppTextStyles.body.copyWith(
+                                      height: 1.45,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 20),
 
-                      // Description
-                      Text('Description', style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 6),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: AppColors.surface,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: AppColors.surfaceLight.withOpacity(0.3),
-                            width: 1,
-                          ),
+                            // Assignment Metadata Card
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: AppColors.surface,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: AppColors.surfaceLight.withValues(alpha: 0.3),
+                                  width: 1,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.03),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primary.withValues(alpha: 0.12),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.engineering_outlined,
+                                      color: AppColors.primaryLight,
+                                      size: 24,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Assigned Agent',
+                                          style: AppTextStyles.caption.copyWith(
+                                            color: AppColors.textSecondary,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          agentName,
+                                          style: AppTextStyles.subtitle.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.textPrimary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+
+                            // Dates Detail Row (Grid Cards)
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildDateDetailCard('Created At', task.createdAt, Icons.calendar_today_outlined),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: _buildDateDetailCard('Last Updated', task.updatedAt, Icons.update_outlined),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 24),
+
+                            // Completion Photo section
+                            _buildCompletionPhotoSection(task),
+                          ],
                         ),
-                        child: Text(task.description, style: AppTextStyles.body),
                       ),
-                      const SizedBox(height: 20),
 
-                      // Assignment Metadata
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: CircleAvatar(
-                          backgroundColor: AppColors.primary.withOpacity(0.15),
-                          child: const Icon(Icons.person_outline, color: AppColors.primaryLight),
-                        ),
-                        title: Text('Assigned Agent', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                        subtitle: Text(agentName, style: AppTextStyles.title.copyWith(fontSize: 16)),
-                      ),
-                      Divider(color: AppColors.surfaceLight),
-
-                      // Dates details
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildDateDetail('Created At', task.createdAt),
-                          ),
-                          Expanded(
-                            child: _buildDateDetail('Last Updated', task.updatedAt),
-                          ),
-                        ],
-                      ),
-                      Divider(color: AppColors.surfaceLight),
-                      const SizedBox(height: 16),
-
-                      // Completion Photo section
-                      _buildCompletionPhotoSection(task),
+                      // Role-Based Bottom Action Bar
+                      _buildBottomActions(context, user.isAdmin, task),
                     ],
-                  ),
-                ),
-
-                // Role-Based Bottom Action Bar
-                _buildBottomActions(context, user.isAdmin, task),
-              ],
-            );
-          }
-          return const LoadingWidget();
-        },
-      ),
+                  );
+                }
+                return const LoadingWidget();
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 
   Widget _buildBadge(String label, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color, width: 1),
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.4), width: 1),
       ),
       child: Text(
         label,
@@ -236,19 +345,65 @@ class TaskDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDateDetail(String label, DateTime date) {
+  Widget _buildDateDetailCard(String label, DateTime date, IconData icon) {
     final period = date.hour >= 12 ? 'PM' : 'AM';
     final hour12 = date.hour % 12 == 0 ? 12 : date.hour % 12;
     final hourStr = hour12.toString().padLeft(2, '0');
     final minuteStr = date.minute.toString().padLeft(2, '0');
-    final dateString = '${date.day}/${date.month}/${date.year} $hourStr:$minuteStr $period';
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: AppTextStyles.caption),
-        const SizedBox(height: 4),
-        Text(dateString, style: AppTextStyles.body.copyWith(fontWeight: FontWeight.bold)),
-      ],
+    final dateString = '${date.day}/${date.month}/${date.year}';
+    final timeString = '$hourStr:$minuteStr $period';
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.surfaceLight.withValues(alpha: 0.3),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 14, color: AppColors.primaryLight),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: AppTextStyles.caption.copyWith(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 11,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            dateString,
+            style: AppTextStyles.body.copyWith(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            timeString,
+            style: AppTextStyles.caption.copyWith(
+              color: AppColors.textSecondary,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -260,14 +415,34 @@ class TaskDetailScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Completion Photo Proof', style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.bold)),
+        Text(
+          'Completion Photo Proof',
+          style: AppTextStyles.caption.copyWith(
+            fontWeight: FontWeight.bold,
+            color: AppColors.textSecondary,
+          ),
+        ),
         const SizedBox(height: 10),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            width: double.infinity,
-            height: 220,
+        Container(
+          width: double.infinity,
+          height: 240,
+          decoration: BoxDecoration(
             color: AppColors.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: AppColors.surfaceLight.withValues(alpha: 0.3),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
             child: task.completionPhoto.isEmpty
                 ? Center(
                     child: Column(
@@ -296,7 +471,7 @@ class TaskDetailScreen extends StatelessWidget {
           if (loadingProgress == null) return child;
           return const Center(child: CircularProgressIndicator());
         },
-        errorBuilder: (_, __, ___) => const Center(
+        errorBuilder: (_, _, _) => const Center(
           child: Icon(Icons.broken_image_outlined, color: AppColors.error, size: 48),
         ),
       );
@@ -306,7 +481,7 @@ class TaskDetailScreen extends StatelessWidget {
         return Image.file(
           file,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => const Center(
+          errorBuilder: (_, _, _) => const Center(
             child: Icon(Icons.broken_image_outlined, color: AppColors.error, size: 48),
           ),
         );
@@ -332,7 +507,7 @@ class TaskDetailScreen extends StatelessWidget {
         color: AppColors.surface,
         border: Border(
           top: BorderSide(
-            color: AppColors.surfaceLight.withOpacity(0.5),
+            color: AppColors.surfaceLight.withValues(alpha: 0.4),
             width: 1,
           ),
         ),
@@ -349,24 +524,44 @@ class TaskDetailScreen extends StatelessWidget {
                       side: const BorderSide(color: AppColors.error),
                       foregroundColor: AppColors.error,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      textStyle: AppTextStyles.button.copyWith(fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => CreateTaskScreen(taskToEdit: task),
-                      ),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: AppColors.primaryGradient,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.35),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                    icon: const Icon(Icons.edit_outlined),
-                    label: const Text('Edit Details'),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    child: ElevatedButton.icon(
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => CreateTaskScreen(taskToEdit: task),
+                        ),
+                      ),
+                      icon: const Icon(Icons.edit_outlined),
+                      label: const Text('Edit Details'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        foregroundColor: AppColors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        textStyle: AppTextStyles.button.copyWith(fontWeight: FontWeight.bold),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
                     ),
                   ),
                 ),
@@ -380,11 +575,11 @@ class TaskDetailScreen extends StatelessWidget {
     if (task.status == 'Completed') {
       return Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 14),
+        padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: AppColors.statusCompleted.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.statusCompleted),
+          color: AppColors.statusCompleted.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.statusCompleted.withValues(alpha: 0.4)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -404,28 +599,51 @@ class TaskDetailScreen extends StatelessWidget {
     }
 
     final isPending = task.status == 'Pending';
+    final actionColor = isPending ? AppColors.statusInProgress : AppColors.statusCompleted;
 
-    return ElevatedButton.icon(
-      onPressed: () {
-        if (isPending) {
-          // Transition to In Progress
-          context.read<TaskBloc>().add(
-                UpdateStatusEvent(
-                  taskId: task.taskId,
-                  status: 'In Progress',
-                ),
-              );
-        } else {
-          // In Progress -> Capturing photo first, then transitions to Completed
-          _showPhotoSourceBottomSheet(context, task);
-        }
-      },
-      icon: Icon(isPending ? Icons.play_arrow : Icons.camera_alt),
-      label: Text(isPending ? 'Start Progress' : 'Capture Photo & Complete'),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: isPending ? AppColors.statusInProgress : AppColors.statusCompleted,
-        foregroundColor: AppColors.white,
-        padding: const EdgeInsets.symmetric(vertical: 14),
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: isPending
+              ? [AppColors.statusInProgress, AppColors.statusInProgress.withValues(alpha: 0.8)]
+              : [AppColors.statusCompleted, AppColors.statusCompleted.withValues(alpha: 0.8)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: actionColor.withValues(alpha: 0.35),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ElevatedButton.icon(
+        onPressed: () {
+          if (isPending) {
+            context.read<TaskBloc>().add(
+                  UpdateStatusEvent(
+                    taskId: task.taskId,
+                    status: 'In Progress',
+                  ),
+                );
+          } else {
+            _showPhotoSourceBottomSheet(context, task);
+          }
+        },
+        icon: Icon(isPending ? Icons.play_arrow : Icons.camera_alt),
+        label: Text(isPending ? 'Start Progress' : 'Capture Photo & Complete'),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          foregroundColor: AppColors.white,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          textStyle: AppTextStyles.button.copyWith(fontWeight: FontWeight.bold),
+          minimumSize: Size.zero,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
       ),
     );
   }
@@ -434,8 +652,12 @@ class TaskDetailScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
         title: const Text('Delete Task?'),
         content: const Text('Are you sure you want to permanently delete this task? This action cannot be undone.'),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
@@ -444,7 +666,6 @@ class TaskDetailScreen extends StatelessWidget {
           TextButton(
             onPressed: () {
               context.read<TaskBloc>().add(DeleteTaskEvent(taskId));
-              // Pop dialog and pop detail screen
               Navigator.of(ctx).pop();
               Navigator.of(context).pop();
             },

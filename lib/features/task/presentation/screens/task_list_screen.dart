@@ -29,7 +29,7 @@ class TaskListScreen extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: AppColors.isDark
-                    ? [AppColors.background, const Color(0xFF0F172A).withOpacity(0.8)]
+                    ? [AppColors.background, const Color(0xFF0F172A).withValues(alpha: 0.8)]
                     : [AppColors.background, const Color(0xFFF1F5F9)],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -79,13 +79,13 @@ class TaskListScreen extends StatelessWidget {
         color: AppColors.surface,
         border: Border(
           bottom: BorderSide(
-            color: AppColors.surfaceLight.withOpacity(0.2),
+            color: AppColors.surfaceLight.withValues(alpha: 0.2),
             width: 1,
           ),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -147,7 +147,7 @@ class TaskListScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(Icons.filter_list, color: AppColors.primary, size: 16),
@@ -166,10 +166,10 @@ class TaskListScreen extends StatelessWidget {
                     height: 44,
                     padding: const EdgeInsets.symmetric(horizontal: 14),
                     decoration: BoxDecoration(
-                      color: AppColors.surfaceLight.withOpacity(0.5),
+                      color: AppColors.surfaceLight.withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: AppColors.surfaceLight.withOpacity(0.4),
+                        color: AppColors.surfaceLight.withValues(alpha: 0.4),
                         width: 1,
                       ),
                     ),
@@ -226,10 +226,10 @@ class TaskListScreen extends StatelessWidget {
         label: Text(label),
         selected: isSelected,
         onSelected: (_) => onSelected(),
-        selectedColor: AppColors.primary.withOpacity(0.18),
-        backgroundColor: AppColors.surfaceLight.withOpacity(0.4),
+        selectedColor: AppColors.primary.withValues(alpha: 0.18),
+        backgroundColor: AppColors.surfaceLight.withValues(alpha: 0.4),
         side: BorderSide(
-          color: isSelected ? AppColors.primary : AppColors.surfaceLight.withOpacity(0.2),
+          color: isSelected ? AppColors.primary : AppColors.surfaceLight.withValues(alpha: 0.2),
           width: 1,
         ),
         labelStyle: TextStyle(
@@ -283,12 +283,12 @@ class TaskListScreen extends StatelessWidget {
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.surfaceLight.withOpacity(0.3),
+          color: AppColors.surfaceLight.withValues(alpha: 0.3),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -315,10 +315,10 @@ class TaskListScreen extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.1),
+                        color: statusColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: statusColor.withOpacity(0.4),
+                          color: statusColor.withValues(alpha: 0.4),
                           width: 1,
                         ),
                       ),
@@ -334,10 +334,10 @@ class TaskListScreen extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
-                        color: priorityColor.withOpacity(0.1),
+                        color: priorityColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: priorityColor.withOpacity(0.4),
+                          color: priorityColor.withValues(alpha: 0.4),
                           width: 1,
                         ),
                       ),
@@ -369,7 +369,7 @@ class TaskListScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                Divider(color: AppColors.surfaceLight.withOpacity(0.4), height: 1),
+                Divider(color: AppColors.surfaceLight.withValues(alpha: 0.4), height: 1),
                 const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -379,7 +379,7 @@ class TaskListScreen extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(5),
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.08),
+                            color: AppColors.primary.withValues(alpha: 0.08),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(Icons.person_outline, size: 14, color: AppColors.primaryLight),

@@ -37,12 +37,6 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
   Future<void> _onLoadTasks(LoadTasks event, Emitter<TaskState> emit) async {
     emit(TaskLoading());
     
-    // Fetch agents for assigning tasks
-    List<Map<String, String>> agents = [];
-    try {
-      agents = await getTasksUseCase.getAgents();
-    } catch (_) {}
-
     await _tasksSubscription?.cancel();
 
     _tasksSubscription = getTasksUseCase.getStream().listen(

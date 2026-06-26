@@ -6,15 +6,12 @@ import 'package:field_service_management_app/core/utils/text_styles.dart';
 import 'package:field_service_management_app/core/widgets/empty_state_widget.dart';
 import 'package:field_service_management_app/core/widgets/loading_widget.dart';
 import 'package:field_service_management_app/core/widgets/error_widget.dart';
-import 'package:field_service_management_app/features/task/domain/entities/task_entity.dart';
 import 'package:field_service_management_app/features/task/presentation/bloc/sync/sync_bloc.dart';
 import 'package:field_service_management_app/features/task/presentation/bloc/sync/sync_event.dart';
 import 'package:field_service_management_app/features/task/presentation/bloc/sync/sync_state.dart';
 import 'package:field_service_management_app/features/task/presentation/bloc/task/task_bloc.dart';
 import 'package:field_service_management_app/features/task/presentation/bloc/task/task_event.dart';
 import 'package:field_service_management_app/features/task/presentation/bloc/task/task_state.dart';
-import 'package:field_service_management_app/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:field_service_management_app/features/auth/presentation/bloc/auth_state.dart';
 import 'package:field_service_management_app/features/task/presentation/screens/create_task_screen.dart';
 import 'package:field_service_management_app/features/task/presentation/screens/task_list_screen.dart';
 import 'package:field_service_management_app/features/auth/presentation/screens/profile_screen.dart';
@@ -64,7 +61,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: AppColors.isDark
-                    ? [AppColors.background, const Color(0xFF0F172A).withOpacity(0.8)]
+                    ? [AppColors.background, const Color(0xFF0F172A).withValues(alpha: 0.8)]
                     : [AppColors.background, const Color(0xFFF1F5F9)],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -177,7 +174,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                               borderRadius: BorderRadius.circular(16),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.primary.withOpacity(0.35),
+                                  color: AppColors.primary.withValues(alpha: 0.35),
                                   blurRadius: 12,
                                   offset: const Offset(0, 4),
                                 )
@@ -260,12 +257,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.surfaceLight.withOpacity(0.3),
+          color: AppColors.surfaceLight.withValues(alpha: 0.3),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -299,10 +296,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: bannerColor.withOpacity(0.08),
+            color: bannerColor.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: bannerColor.withOpacity(0.35),
+              color: bannerColor.withValues(alpha: 0.35),
               width: 1.2,
             ),
           ),
@@ -311,7 +308,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: bannerColor.withOpacity(0.12),
+                  color: bannerColor.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -345,7 +342,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    backgroundColor: AppColors.statusPending.withOpacity(0.15),
+                    backgroundColor: AppColors.statusPending.withValues(alpha: 0.15),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -373,12 +370,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.surfaceLight.withOpacity(0.3),
+          color: AppColors.surfaceLight.withValues(alpha: 0.3),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -400,7 +397,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon, color: color, size: 18),
@@ -581,7 +578,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             drawVerticalLine: false,
             getDrawingHorizontalLine: (value) {
               return FlLine(
-                color: AppColors.surfaceLight.withOpacity(0.35),
+                color: AppColors.surfaceLight.withValues(alpha: 0.35),
                 strokeWidth: 0.8,
               );
             },

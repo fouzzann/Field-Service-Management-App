@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:field_service_management_app/core/network/network_info.dart';
 import 'package:field_service_management_app/features/task/domain/usecases/sync_tasks_usecase.dart';

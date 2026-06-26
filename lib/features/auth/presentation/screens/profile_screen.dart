@@ -42,7 +42,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: AppColors.isDark
-                    ? [AppColors.background, const Color(0xFF0F172A).withOpacity(0.8)]
+                    ? [AppColors.background, const Color(0xFF0F172A).withValues(alpha: 0.8)]
                     : [AppColors.background, const Color(0xFFF1F5F9)],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -73,12 +73,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                      color: roleColor.withOpacity(0.2),
+                                      color: roleColor.withValues(alpha: 0.2),
                                       width: 4,
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: roleColor.withOpacity(0.15),
+                                        color: roleColor.withValues(alpha: 0.15),
                                         blurRadius: 20,
                                         spreadRadius: 5,
                                       ),
@@ -91,14 +91,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                      color: roleColor.withOpacity(0.5),
+                                      color: roleColor.withValues(alpha: 0.5),
                                       width: 2,
                                     ),
                                   ),
                                 ),
                                 CircleAvatar(
                                   radius: 52,
-                                  backgroundColor: roleColor.withOpacity(0.12),
+                                  backgroundColor: roleColor.withValues(alpha: 0.12),
                                   child: Icon(
                                     user.isAdmin
                                         ? Icons.admin_panel_settings_outlined
@@ -128,10 +128,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                             decoration: BoxDecoration(
-                              color: roleColor.withOpacity(0.1),
+                              color: roleColor.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                color: roleColor.withOpacity(0.4),
+                                color: roleColor.withValues(alpha: 0.4),
                                 width: 1,
                               ),
                             ),
@@ -156,12 +156,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               color: AppColors.surface,
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: AppColors.surfaceLight.withOpacity(0.3),
+                                color: AppColors.surfaceLight.withValues(alpha: 0.3),
                                 width: 1,
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.04),
+                                  color: Colors.black.withValues(alpha: 0.04),
                                   blurRadius: 16,
                                   offset: const Offset(0, 8),
                                 ),
@@ -175,7 +175,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   user.email,
                                   roleColor,
                                 ),
-                                Divider(color: AppColors.surfaceLight.withOpacity(0.5), height: 24),
+                                Divider(color: AppColors.surfaceLight.withValues(alpha: 0.5), height: 24),
                                 _buildDetailRow(
                                   Icons.perm_identity_outlined,
                                   'User ID Reference',
@@ -194,7 +194,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               borderRadius: BorderRadius.circular(16),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.error.withOpacity(0.2),
+                                  color: AppColors.error.withValues(alpha: 0.2),
                                   blurRadius: 12,
                                   offset: const Offset(0, 4),
                                 ),
@@ -267,12 +267,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               color: AppColors.surface,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: AppColors.surfaceLight.withOpacity(0.3),
+                color: AppColors.surfaceLight.withValues(alpha: 0.3),
                 width: 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
+                  color: Colors.black.withValues(alpha: 0.04),
                   blurRadius: 16,
                   offset: const Offset(0, 8),
                 ),
@@ -294,7 +294,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.12),
+                        color: AppColors.primary.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
@@ -341,7 +341,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: LinearProgressIndicator(
                         value: completionRate,
                         minHeight: 8,
-                        backgroundColor: AppColors.surfaceLight.withOpacity(0.5),
+                        backgroundColor: AppColors.surfaceLight.withValues(alpha: 0.5),
                         valueColor: const AlwaysStoppedAnimation<Color>(AppColors.statusCompleted),
                       ),
                     ),
@@ -374,10 +374,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         margin: const EdgeInsets.symmetric(horizontal: 4),
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         decoration: BoxDecoration(
-          color: AppColors.background.withOpacity(0.3),
+          color: AppColors.background.withValues(alpha: 0.3),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: AppColors.surfaceLight.withOpacity(0.2),
+            color: AppColors.surfaceLight.withValues(alpha: 0.2),
           ),
         ),
         child: Column(
@@ -412,7 +412,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: accentColor.withOpacity(0.1),
+            color: accentColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(icon, color: accentColor, size: 20),

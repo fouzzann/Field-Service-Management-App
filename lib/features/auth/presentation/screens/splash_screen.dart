@@ -94,8 +94,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     if (authState is! AuthInitial) {
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
-          pageBuilder: (_, __, ___) => const AuthWrapper(),
-          transitionsBuilder: (_, animation, __, child) => FadeTransition(
+          pageBuilder: (_, _, _) => const AuthWrapper(),
+          transitionsBuilder: (_, animation, _, child) => FadeTransition(
             opacity: animation,
             child: child,
           ),
@@ -156,12 +156,12 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
                                       border: Border.all(
-                                        color: primaryColor.withOpacity(0.15),
+                                        color: primaryColor.withValues(alpha: 0.15),
                                         width: 5,
                                       ),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: primaryColor.withOpacity(0.1),
+                                          color: primaryColor.withValues(alpha: 0.1),
                                           blurRadius: 30,
                                           spreadRadius: 8,
                                         ),
@@ -174,7 +174,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
                                       border: Border.all(
-                                        color: primaryColor.withOpacity(0.3),
+                                        color: primaryColor.withValues(alpha: 0.3),
                                         width: 2,
                                       ),
                                     ),
@@ -238,7 +238,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                                   child: LinearProgressIndicator(
                                     minHeight: 3.5,
                                     backgroundColor: isDark 
-                                        ? AppColors.surfaceLight.withOpacity(0.2)
+                                        ? AppColors.surfaceLight.withValues(alpha: 0.2)
                                         : AppColors.surfaceLight,
                                     valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
                                   ),
