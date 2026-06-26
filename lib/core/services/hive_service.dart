@@ -1,7 +1,7 @@
 import 'package:hive_flutter/hive_flutter.dart';
-import '../../features/auth/data/models/user_model.dart';
-import '../../features/task/data/models/task_model.dart';
-import '../../features/task/data/models/sync_queue_item.dart';
+import '../../features/authentication/data/models/user_model.dart';
+import '../../features/tasks/data/models/task_model.dart';
+import '../../features/tasks/data/models/sync_queue_item.dart';
 
 class HiveService {
   static const String userBoxName = 'user_box';

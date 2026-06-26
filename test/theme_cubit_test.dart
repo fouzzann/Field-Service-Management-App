@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:field_service_management_app/core/services/hive_service.dart';
-import 'package:field_service_management_app/features/task/presentation/bloc/theme/theme_cubit.dart';
+import 'package:field_service_management_app/features/settings/presentation/cubit/theme_cubit.dart';
 
 class MockHiveService extends Mock implements HiveService {}
 class MockBox extends Mock implements Box {}

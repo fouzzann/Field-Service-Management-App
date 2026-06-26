@@ -2,19 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'core/theme/app_theme.dart';
-import 'features/auth/presentation/bloc/auth_bloc.dart';
-import 'features/auth/presentation/bloc/auth_event.dart';
-import 'features/auth/presentation/bloc/auth_state.dart';
-import 'features/auth/presentation/screens/login_screen.dart';
-import 'features/task/presentation/screens/admin_dashboard_screen.dart';
-import 'features/task/presentation/screens/agent_tasks_screen.dart';
-import 'features/task/presentation/bloc/task/task_bloc.dart';
-import 'features/task/presentation/bloc/sync/sync_bloc.dart';
-import 'features/task/presentation/bloc/theme/theme_cubit.dart';
-import 'package:field_service_management_app/core/utils/app_colors.dart';
-import 'features/auth/presentation/screens/splash_screen.dart';
-import 'injection_container.dart' as di;
+import 'core/utils/app_colors.dart';
+import 'core/dependency_injection/injection_container.dart' as di;
 import 'firebase_options.dart';
+
+// Authentication Feature
+import 'features/authentication/presentation/cubit/auth_cubit.dart';
+import 'features/authentication/presentation/cubit/auth_state.dart';
+import 'features/authentication/presentation/pages/login_page.dart';
+import 'features/authentication/presentation/pages/splash_page.dart';
+
+// Tasks Feature
+import 'features/tasks/presentation/cubit/task_cubit.dart';
+import 'features/tasks/presentation/cubit/sync_cubit.dart';
+import 'features/tasks/presentation/pages/agent_tasks_page.dart';
+
+// Settings Feature
+import 'features/settings/presentation/cubit/theme_cubit.dart';
+
+// Dashboard Feature
+import 'features/dashboard/presentation/pages/admin_dashboard_page.dart';
+
+// Notifications Feature
+import 'features/notifications/presentation/cubit/notification_cubit.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,7 +33,7 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // Initialize DI container, Hive and FCM Services
+  // Initialize DI container, Hive, and other services
   await di.init();
 
   runApp(const MyApp());
@@ -40,25 +50,23 @@ class _MyAppState extends State<MyApp> {
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider<AuthBloc>(
-          create: (_) => di.sl<AuthBloc>()..add(AuthCheckRequested()),
+        BlocProvider<AuthCubit>(
+          create: (_) => di.sl<AuthCubit>()..checkAuth(),
         ),
-        BlocProvider<TaskBloc>(
-          create: (_) => di.sl<TaskBloc>(),
+        BlocProvider<TaskCubit>(
+          create: (_) => di.sl<TaskCubit>()..loadTasks(),
         ),
-        BlocProvider<SyncBloc>(
-          create: (_) => di.sl<SyncBloc>(),
+        BlocProvider<SyncCubit>(
+          create: (_) => di.sl<SyncCubit>(),
         ),
         BlocProvider<ThemeCubit>(
           create: (_) => di.sl<ThemeCubit>(),
+        ),
+        BlocProvider<NotificationCubit>(
+          create: (_) => di.sl<NotificationCubit>()..init(),
         ),
       ],
       child: BlocBuilder<ThemeCubit, ThemeMode>(
@@ -75,7 +83,7 @@ class _MyAppState extends State<MyApp> {
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: themeMode,
-            home: const SplashScreen(),
+            home: const SplashPage(),
           );
         },
       ),
@@ -88,7 +96,7 @@ class AuthWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<AuthBloc, AuthState>(
+    return BlocConsumer<AuthCubit, AuthState>(
       listener: (context, state) {
         if (state is Unauthenticated) {
           // Pop all pushed routes back to the root login wrapper on logout
@@ -98,18 +106,18 @@ class AuthWrapper extends StatelessWidget {
       builder: (context, state) {
         if (state is Authenticated) {
           if (state.user.isAdmin) {
-            return const AdminDashboardScreen();
+            return const AdminDashboardPage();
           } else {
-            return const AgentTasksScreen();
+            return const AgentTasksPage();
           }
-        } else if (state is AuthInitial) {
+        } else if (state is AuthInitial || state is AuthLoading) {
           return const Scaffold(
             body: Center(
               child: CircularProgressIndicator(),
             ),
           );
         } else {
-          return const LoginScreen();
+          return const LoginPage();
         }
       },
     );

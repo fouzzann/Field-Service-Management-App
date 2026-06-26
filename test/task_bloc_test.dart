@@ -2,29 +2,28 @@ import 'dart:async';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:field_service_management_app/features/task/domain/entities/task_entity.dart';
-import 'package:field_service_management_app/features/task/domain/usecases/create_task_usecase.dart';
-import 'package:field_service_management_app/features/task/domain/usecases/delete_task_usecase.dart';
-import 'package:field_service_management_app/features/task/domain/usecases/get_tasks_usecase.dart';
-import 'package:field_service_management_app/features/task/domain/usecases/update_task_status_usecase.dart';
-import 'package:field_service_management_app/features/task/domain/repositories/task_repository.dart';
-import 'package:field_service_management_app/features/task/presentation/bloc/task/task_bloc.dart';
-import 'package:field_service_management_app/features/task/presentation/bloc/task/task_event.dart';
-import 'package:field_service_management_app/features/task/presentation/bloc/task/task_state.dart';
+import 'package:field_service_management_app/features/tasks/domain/entities/task_entity.dart';
+import 'package:field_service_management_app/features/tasks/domain/usecases/create_task_usecase.dart';
+import 'package:field_service_management_app/features/tasks/domain/usecases/delete_task_usecase.dart';
+import 'package:field_service_management_app/features/tasks/domain/usecases/get_tasks_usecase.dart';
+import 'package:field_service_management_app/features/tasks/domain/usecases/update_task_status_usecase.dart';
+import 'package:field_service_management_app/features/tasks/domain/usecases/update_task_usecase.dart';
+import 'package:field_service_management_app/features/tasks/presentation/cubit/task_cubit.dart';
+import 'package:field_service_management_app/features/tasks/presentation/cubit/task_state.dart';
 
 class MockGetTasksUseCase extends Mock implements GetTasksUseCase {}
 class MockCreateTaskUseCase extends Mock implements CreateTaskUseCase {}
 class MockUpdateTaskStatusUseCase extends Mock implements UpdateTaskStatusUseCase {}
 class MockDeleteTaskUseCase extends Mock implements DeleteTaskUseCase {}
-class MockTaskRepository extends Mock implements TaskRepository {}
+class MockUpdateTaskUseCase extends Mock implements UpdateTaskUseCase {}
 
 void main() {
   late MockGetTasksUseCase mockGetTasksUseCase;
   late MockCreateTaskUseCase mockCreateTaskUseCase;
   late MockUpdateTaskStatusUseCase mockUpdateTaskStatusUseCase;
   late MockDeleteTaskUseCase mockDeleteTaskUseCase;
-  late MockTaskRepository mockTaskRepository;
-  late TaskBloc taskBloc;
+  late MockUpdateTaskUseCase mockUpdateTaskUseCase;
+  late TaskCubit taskCubit;
 
   final tTasks = [
     TaskEntity(
@@ -49,36 +48,36 @@ void main() {
     mockCreateTaskUseCase = MockCreateTaskUseCase();
     mockUpdateTaskStatusUseCase = MockUpdateTaskStatusUseCase();
     mockDeleteTaskUseCase = MockDeleteTaskUseCase();
-    mockTaskRepository = MockTaskRepository();
+    mockUpdateTaskUseCase = MockUpdateTaskUseCase();
 
     // Stub default usecase return values
     when(() => mockGetTasksUseCase.getAgents()).thenAnswer((_) async => tAgents);
 
-    taskBloc = TaskBloc(
+    taskCubit = TaskCubit(
       getTasksUseCase: mockGetTasksUseCase,
       createTaskUseCase: mockCreateTaskUseCase,
       updateTaskStatusUseCase: mockUpdateTaskStatusUseCase,
       deleteTaskUseCase: mockDeleteTaskUseCase,
-      taskRepository: mockTaskRepository,
+      updateTaskUseCase: mockUpdateTaskUseCase,
     );
   });
 
   tearDown(() {
-    taskBloc.close();
+    taskCubit.close();
   });
 
   test('initial state should be TaskInitial', () {
-    expect(taskBloc.state, equals(TaskInitial()));
+    expect(taskCubit.state, equals(TaskInitial()));
   });
 
-  group('LoadTasks', () {
-    blocTest<TaskBloc, TaskState>(
-      'should subscribe to stream and emit [TasksLoaded] when tasks are loaded',
+  group('loadTasks', () {
+    blocTest<TaskCubit, TaskState>(
+      'should subscribe to stream and emit [TaskLoading, TasksLoaded] when tasks are loaded',
       build: () {
         when(() => mockGetTasksUseCase.getStream()).thenAnswer((_) => Stream.value(tTasks));
-        return taskBloc;
+        return taskCubit;
       },
-      act: (bloc) => bloc.add(LoadTasks()),
+      act: (cubit) => cubit.loadTasks(),
       expect: () => [
         TaskLoading(),
         TasksLoaded(
@@ -95,15 +94,15 @@ void main() {
     );
   });
 
-  group('UpdateStatusEvent', () {
-    blocTest<TaskBloc, TaskState>(
+  group('updateStatus', () {
+    blocTest<TaskCubit, TaskState>(
       'should call UpdateTaskStatusUseCase and emit no state changes on success (stream updates state)',
       build: () {
         when(() => mockUpdateTaskStatusUseCase(any(), any(), localPhotoPath: any(named: 'localPhotoPath')))
             .thenAnswer((_) async => {});
-        return taskBloc;
+        return taskCubit;
       },
-      act: (bloc) => bloc.add(const UpdateStatusEvent(taskId: '1', status: 'In Progress')),
+      act: (cubit) => cubit.updateStatus('1', 'In Progress'),
       expect: () => [],
       verify: (_) {
         verify(() => mockUpdateTaskStatusUseCase('1', 'In Progress')).called(1);

@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../features/auth/data/models/user_model.dart';
+import '../../features/authentication/data/models/user_model.dart';
 
 class AuthService {
   final FirebaseAuth _firebaseAuth;
@@ -72,6 +72,28 @@ class AuthService {
           emailLower.contains('admin') ||
           emailLower.contains('agent')) {
         
+        // 1. Try to check if a user with this email already exists in Firestore to avoid duplicates
+        try {
+          final querySnapshot = await _firestore
+              .collection('users')
+              .where('email', isEqualTo: emailLower)
+              .get()
+              .timeout(const Duration(seconds: 3));
+
+          if (querySnapshot.docs.isNotEmpty) {
+            final doc = querySnapshot.docs.first;
+            final data = doc.data();
+            return UserModel(
+              uid: doc.id,
+              name: data['name'] as String? ?? emailLower.split('@').first.toUpperCase(),
+              email: emailLower,
+              role: data['role'] as String? ?? (emailLower.contains('admin') ? 'admin' : 'agent'),
+            );
+          }
+        } catch (_) {
+          // If offline or query fails, fall back to default mock generation
+        }
+
         final String name = emailLower.split('@').first.toUpperCase();
         final String role = emailLower.contains('admin') ? 'admin' : 'agent';
         final String uid = 'mock_uid_${emailLower.hashCode.abs()}';
