@@ -202,7 +202,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             child: ElevatedButton.icon(
                               onPressed: () {
-                                context.read<AuthBloc>().add(LogoutRequested());
+                                showDialog(
+                                  context: context,
+                                  builder: (ctx) => AlertDialog(
+                                    backgroundColor: AppColors.surface,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    title: Text(
+                                      'Logout Session',
+                                      style: AppTextStyles.title.copyWith(
+                                        color: AppColors.textPrimary,
+                                      ),
+                                    ),
+                                    content: Text(
+                                      'Are you sure you want to logout? You will need to sign in again to access your tasks.',
+                                      style: AppTextStyles.body.copyWith(
+                                        color: AppColors.textSecondary,
+                                      ),
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.of(ctx).pop(),
+                                        child: const Text('Cancel'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(ctx).pop();
+                                          context.read<AuthBloc>().add(LogoutRequested());
+                                        },
+                                        style: TextButton.styleFrom(
+                                          foregroundColor: AppColors.error,
+                                        ),
+                                        child: const Text('Logout'),
+                                      ),
+                                    ],
+                                  ),
+                                );
                               },
                               icon: const Icon(Icons.logout, size: 20),
                               label: const Text('Logout Session'),
