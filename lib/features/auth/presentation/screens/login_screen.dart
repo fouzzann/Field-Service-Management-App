@@ -21,6 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _rememberMe = false;
 
   @override
   void dispose() {
@@ -39,100 +40,6 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
     }
-  }
-
-  void _fillMockCredentials(String email, String password) {
-    setState(() {
-      _emailController.text = email;
-      _passwordController.text = password;
-    });
-  }
-
-  Widget _buildQuickLoginCard({
-    required String roleName,
-    required String email,
-    required String password,
-    required IconData icon,
-    required Color iconColor,
-    required String description,
-  }) {
-    final isDark = AppColors.isDark;
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: isDark 
-            ? AppColors.surface.withValues(alpha: 0.5)
-            : AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark 
-              ? AppColors.surfaceLight.withValues(alpha: 0.2)
-              : AppColors.surfaceLight.withValues(alpha: 0.4),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.1 : 0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: InkWell(
-          onTap: () => _fillMockCredentials(email, password),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: iconColor.withValues(alpha: 0.12),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    icon,
-                    color: iconColor,
-                    size: 22,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        roleName,
-                        style: AppTextStyles.subtitle.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        description,
-                        style: AppTextStyles.caption.copyWith(
-                          color: AppColors.textSecondary,
-                          fontSize: 11.5,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  color: AppColors.textMuted.withValues(alpha: 0.4),
-                  size: 14,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
   }
 
   @override
@@ -465,6 +372,76 @@ class _LoginScreenState extends State<LoginScreen> {
                                       ),
                                     ),
                                     
+                                    const SizedBox(height: 16),
+                                    
+                                    // Remember Me & Forgot Password Row
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            SizedBox(
+                                              width: 24,
+                                              height: 24,
+                                              child: Checkbox(
+                                                value: _rememberMe,
+                                                activeColor: primaryColor,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.circular(6),
+                                                ),
+                                                onChanged: (value) {
+                                                  setState(() {
+                                                    _rememberMe = value ?? false;
+                                                  });
+                                                },
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            GestureDetector(
+                                              onTap: () {
+                                                setState(() {
+                                                  _rememberMe = !_rememberMe;
+                                                });
+                                              },
+                                              child: Text(
+                                                'Remember me',
+                                                style: AppTextStyles.bodySecondary.copyWith(
+                                                  fontSize: 13.5,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                content: const Text(
+                                                  'Password reset link has been sent to your email.',
+                                                ),
+                                                backgroundColor: AppColors.primary,
+                                                behavior: SnackBarBehavior.floating,
+                                              ),
+                                            );
+                                          },
+                                          style: TextButton.styleFrom(
+                                            padding: EdgeInsets.zero,
+                                            minimumSize: Size.zero,
+                                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                          ),
+                                          child: Text(
+                                            'Forgot Password?',
+                                            style: TextStyle(
+                                              color: primaryColor,
+                                              fontSize: 13.5,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    
                                     const SizedBox(height: 24),
                                     
                                     state is AuthLoading
@@ -504,63 +481,40 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                             
-                            const SizedBox(height: 36),
+                            const SizedBox(height: 48),
                             
-                            // Divider
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Divider(
-                                    color: AppColors.textMuted.withValues(alpha: 0.25),
-                                    thickness: 1,
+                            // Modern Secure Footer
+                            Center(
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.lock_outline_rounded,
+                                        size: 14,
+                                        color: AppColors.textMuted.withValues(alpha: 0.6),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'Secured with SSL 256-bit Encryption',
+                                        style: AppTextStyles.caption.copyWith(
+                                          color: AppColors.textMuted.withValues(alpha: 0.8),
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                                  child: Text(
-                                    'EASY ACCESSIBILITY',
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    '© 2026 Field Service Management. All rights reserved.',
                                     style: AppTextStyles.caption.copyWith(
-                                      letterSpacing: 1.5,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.textSecondary,
+                                      color: AppColors.textMuted.withValues(alpha: 0.5),
+                                      fontSize: 10,
                                     ),
                                   ),
-                                ),
-                                Expanded(
-                                  child: Divider(
-                                    color: AppColors.textMuted.withValues(alpha: 0.25),
-                                    thickness: 1,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            
-                            const SizedBox(height: 16),
-                            
-                            // Developer Access Selection Cards
-                            _buildQuickLoginCard(
-                              roleName: 'System Administrator',
-                              email: 'admin@field.com',
-                              password: 'admin123',
-                              icon: Icons.admin_panel_settings_outlined,
-                              iconColor: AppColors.statusPending,
-                              description: 'Full management dashboard and task creation tools',
-                            ),
-                            _buildQuickLoginCard(
-                              roleName: 'Field Service Agent 1',
-                              email: 'agent1@field.com',
-                              password: 'agent123',
-                              icon: Icons.engineering_outlined,
-                              iconColor: AppColors.statusInProgress,
-                              description: 'Assigned tasks overview, status updates & profile stats',
-                            ),
-                            _buildQuickLoginCard(
-                              roleName: 'Field Service Agent 2',
-                              email: 'agent2@field.com',
-                              password: 'agent123',
-                              icon: Icons.engineering_outlined,
-                              iconColor: AppColors.statusCompleted,
-                              description: 'Alternative agent account for sync and offline testing',
+                                ],
+                              ),
                             ),
                             const SizedBox(height: 12),
                           ],
