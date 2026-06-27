@@ -8,6 +8,9 @@ import '../datasource/task_remote_datasource.dart';
 import '../models/task_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' show FirebaseException;
 
+// This is the actual implementation of the TaskRepository contract.
+// It decides whether to fetch data from the local database (Hive) or the cloud (Firestore/Firebase Storage),
+// and handles syncing offline actions when internet is available.
 class TaskRepositoryImpl implements TaskRepository {
   final TaskRemoteDataSource remoteDataSource;
   final TaskLocalDataSource localDataSource;
@@ -20,9 +23,11 @@ class TaskRepositoryImpl implements TaskRepository {
   });
 
   @override
+  // Creates a new task. Requires internet connection.
   Future<void> createTask(TaskEntity task) async {
     final taskModel = TaskModel.fromEntity(task);
     final isConnected = await networkInfo.isConnected;
+    
     if (isConnected) {
       try {
         await remoteDataSource.createTask(taskModel);
@@ -37,9 +42,11 @@ class TaskRepositoryImpl implements TaskRepository {
   }
 
   @override
+  // Updates task details. Requires internet connection.
   Future<void> updateTask(TaskEntity task) async {
     final taskModel = TaskModel.fromEntity(task);
     final isConnected = await networkInfo.isConnected;
+    
     if (isConnected) {
       try {
         await remoteDataSource.updateTask(taskModel);
@@ -54,8 +61,11 @@ class TaskRepositoryImpl implements TaskRepository {
   }
 
   @override
+  // Updates the status of a task (e.g. marking as "Completed").
+  // This supports offline updates by saving the change locally and syncing later.
   Future<void> updateTaskStatus(String taskId, String status, {String? localPhotoPath}) async {
     try {
+      // 1. Get cached tasks and update status immediately in the local cache so the UI updates instantly.
       final cachedTasks = await localDataSource.getCachedTasks();
       final index = cachedTasks.indexWhere((t) => t.taskId == taskId);
 
@@ -75,12 +85,15 @@ class TaskRepositoryImpl implements TaskRepository {
         await localDataSource.cacheTask(task);
       }
 
+      // 2. Add the status update to the offline sync queue.
       await localDataSource.addPendingStatusUpdate(taskId, status);
 
+      // 3. If a photo path is provided, add the photo upload to the offline sync queue.
       if (localPhotoPath != null) {
         await localDataSource.addPendingPhotoUpload(taskId, localPhotoPath);
       }
 
+      // 4. If we are currently connected to the internet, run the sync process in the background.
       final isConnected = await networkInfo.isConnected;
       if (isConnected) {
         syncOfflineTasks().catchError((e) {
@@ -93,6 +106,7 @@ class TaskRepositoryImpl implements TaskRepository {
   }
 
   @override
+  // Deletes a task. Requires internet connection.
   Future<void> deleteTask(String taskId) async {
     final isConnected = await networkInfo.isConnected;
     if (isConnected) {
@@ -110,6 +124,10 @@ class TaskRepositoryImpl implements TaskRepository {
   }
 
   @override
+  // Returns a stream of tasks.
+  // It emits the local cached tasks first (for speed), then listens to the cloud Firestore stream.
+  // When Firestore delivers changes, it merges any unsynced local status updates or photos into the list,
+  // caches the merged list, and emits the final updated tasks list.
   Stream<List<TaskEntity>> getTasksStream() async* {
     try {
       final cached = await localDataSource.getCachedTasks();
@@ -136,9 +154,11 @@ class TaskRepositoryImpl implements TaskRepository {
         String currentStatus = remoteTask.status;
         String currentPhoto = remoteTask.completionPhoto;
 
+        // If the task has a pending status update offline, show that status instead of what Firestore has.
         if (pendingUpdate.isNotEmpty) {
           currentStatus = pendingUpdate['status'] as String;
         }
+        // If the task has a pending photo upload offline, show the local file path first.
         if (pendingUpload.isNotEmpty) {
           currentPhoto = pendingUpload['localPath'] as String;
         }
@@ -169,6 +189,7 @@ class TaskRepositoryImpl implements TaskRepository {
   }
 
   @override
+  // Loads all tasks stored on the local device.
   Future<List<TaskEntity>> getLocalTasks() async {
     try {
       return await localDataSource.getCachedTasks();
@@ -178,6 +199,7 @@ class TaskRepositoryImpl implements TaskRepository {
   }
 
   @override
+  // Fetches a list of agents from Firestore.
   Future<List<Map<String, String>>> getAgents() async {
     try {
       return await remoteDataSource.getAgents();
@@ -189,8 +211,9 @@ class TaskRepositoryImpl implements TaskRepository {
   bool _isSyncing = false;
 
   @override
+  // Syncs all local changes (photo uploads and status updates) to the cloud when internet returns.
   Future<void> syncOfflineTasks() async {
-    if (_isSyncing) return;
+    if (_isSyncing) return; // Prevent running multiple sync processes at the same time.
     if (!await networkInfo.isConnected) return;
     _isSyncing = true;
 
@@ -200,6 +223,7 @@ class TaskRepositoryImpl implements TaskRepository {
       final pendingUpdates = await localDataSource.getPendingStatusUpdates();
       final pendingUploads = await localDataSource.getPendingPhotoUploads();
 
+      // 1. Process pending photo uploads first.
       for (final upload in pendingUploads) {
         if (upload['synced'] == true) continue;
 
@@ -211,8 +235,10 @@ class TaskRepositoryImpl implements TaskRepository {
             print('Sync Queue [Photo]: Syncing photo upload for task $taskId');
           }
 
+          // Upload physical image file to Firebase Storage, get the cloud web URL.
           final downloadUrl = await remoteDataSource.uploadCompletionPhoto(taskId, localPath);
 
+          // Update local cache and Firestore database with the new cloud URL.
           final cachedTasks = await localDataSource.getCachedTasks();
           final index = cachedTasks.indexWhere((t) => t.taskId == taskId);
           if (index != -1) {
@@ -232,6 +258,7 @@ class TaskRepositoryImpl implements TaskRepository {
             await remoteDataSource.updateTask(task);
           }
 
+          // Mark this photo upload task as complete and remove from offline queue.
           await localDataSource.markPhotoUploadSynced(taskId);
           await localDataSource.removePendingPhotoUpload(taskId);
         } catch (e) {
@@ -239,6 +266,7 @@ class TaskRepositoryImpl implements TaskRepository {
         }
       }
 
+      // 2. Process pending status updates.
       for (final update in pendingUpdates) {
         if (update['synced'] == true) continue;
 
@@ -250,6 +278,7 @@ class TaskRepositoryImpl implements TaskRepository {
             print('Sync Queue [Status]: Syncing status update for task $taskId to $status');
           }
 
+          // Update local cache and Firestore database with the new status.
           final cachedTasks = await localDataSource.getCachedTasks();
           final index = cachedTasks.indexWhere((t) => t.taskId == taskId);
           if (index != -1) {
@@ -269,6 +298,7 @@ class TaskRepositoryImpl implements TaskRepository {
             await remoteDataSource.updateTask(task);
           }
 
+          // Mark this status update as complete and remove from offline queue.
           await localDataSource.markStatusUpdateSynced(taskId);
           await localDataSource.removePendingStatusUpdate(taskId);
         } catch (e) {

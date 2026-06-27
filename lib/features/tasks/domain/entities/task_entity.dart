@@ -1,15 +1,18 @@
 import 'package:equatable/equatable.dart';
 
+// In Clean Architecture, an "Entity" represents a core business data object.
+// This is the TaskEntity. It contains only clean, raw data about a Task.
+// Equatable is used so we can compare two TaskEntity objects using '==' to see if they are equal.
 class TaskEntity extends Equatable {
-  final String taskId;
-  final String title;
-  final String description;
-  final String priority; // 'Low' | 'Medium' | 'High'
-  final String status; // 'Pending' | 'In Progress' | 'Completed'
-  final String assignedAgentId;
-  final String completionPhoto; // URL or local path
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final String taskId;          // Unique ID of the task
+  final String title;           // Title of the task (e.g. "Fix Router")
+  final String description;     // Details of the task
+  final String priority;        // Priority level: 'Low' | 'Medium' | 'High'
+  final String status;          // Current status: 'Pending' | 'In Progress' | 'Completed'
+  final String assignedAgentId; // ID of the agent assigned to this task
+  final String completionPhoto; // Image URL or local file path of the completed work photo
+  final DateTime createdAt;     // Date and time when the task was created
+  final DateTime updatedAt;     // Date and time when the task was last updated
 
   const TaskEntity({
     required this.taskId,
@@ -23,6 +26,8 @@ class TaskEntity extends Equatable {
     required this.updatedAt,
   });
 
+  // A helper method that lets us copy an existing TaskEntity and change only some of its fields
+  // (since all fields are marked final and immutable).
   TaskEntity copyWith({
     String? taskId,
     String? title,
@@ -48,6 +53,7 @@ class TaskEntity extends Equatable {
   }
 
   @override
+  // List all properties that Equatable should check when comparing two objects.
   List<Object?> get props => [
         taskId,
         title,

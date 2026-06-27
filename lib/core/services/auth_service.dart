@@ -2,8 +2,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../features/authentication/data/models/user_model.dart';
 
+// This service handles user authentication: logging in, logging out, and getting the logged-in user.
 class AuthService {
+  // Firebase Auth instance handles the actual secure login.
   final FirebaseAuth _firebaseAuth;
+  
+  // Firestore database instance stores extra user info (like their name and role: admin or agent).
   final FirebaseFirestore _firestore;
 
   AuthService({
@@ -13,12 +17,12 @@ class AuthService {
         _firestore = firestore ?? FirebaseFirestore.instance;
 
   /// Logs in a user using FirebaseAuth and fetches their role from Firestore.
-  /// If it's one of the preset mock users, it bypasses network constraints to log in.
+  /// If internet is unavailable or it's one of the preset mock users, it allows offline/local login.
   Future<UserModel> login(String email, String password) async {
     final emailLower = email.trim().toLowerCase();
     
     try {
-      // 1. Authenticate with Firebase Authentication
+      // 1. First, authenticate the email and password with Firebase Authentication.
       final credential = await _firebaseAuth.signInWithEmailAndPassword(
         email: email.trim(),
         password: password,
@@ -29,7 +33,7 @@ class AuthService {
         throw Exception('User authentication failed.');
       }
 
-      // 2. Read the user's document from Firestore: users/{uid}
+      // 2. Read the user's additional details (like their role) from Firestore database.
       final doc = await _firestore
           .collection('users')
           .doc(user.uid)
@@ -38,7 +42,7 @@ class AuthService {
 
       if (doc.exists && doc.data() != null) {
         final data = doc.data()!;
-        // Fetch the name, email, and role field from Firestore, map to UserModel
+        // Return a UserModel using the data from Firestore.
         return UserModel(
           uid: doc.id,
           name: data['name'] as String? ?? 'User',
@@ -46,7 +50,7 @@ class AuthService {
           role: data['role'] as String? ?? 'agent',
         );
       } else {
-        // Fallback or create document if it doesn't exist
+        // If the Firestore document doesn't exist yet, we create a default fallback user.
         final String name = user.email?.split('@').first.toUpperCase() ?? 'USER';
         final String role = emailLower.contains('admin') ? 'admin' : 'agent';
         final userModel = UserModel(
@@ -56,7 +60,7 @@ class AuthService {
           role: role,
         );
         
-        // Write to Firestore in the background
+        // Write the new user details to Firestore so it's saved for next time.
         _firestore.collection('users').doc(user.uid).set(userModel.toJson()).timeout(
           const Duration(seconds: 3),
           onTimeout: () => {},
@@ -65,14 +69,15 @@ class AuthService {
         return userModel;
       }
     } catch (e) {
-      // Check if it matches a preset evaluation account format for local login fallback.
+      // Fallback: If Firebase fails (e.g. offline/no internet) BUT the email/password
+      // matches one of our preset mock accounts, we allow local login to make testing easy.
       if ((emailLower == 'admin@field.com' && password == 'admin123') ||
           (emailLower == 'agent1@field.com' && password == 'agent123') ||
           (emailLower == 'agent2@field.com' && password == 'agent123') ||
           emailLower.contains('admin') ||
           emailLower.contains('agent')) {
         
-        // 1. Try to check if a user with this email already exists in Firestore to avoid duplicates
+        // Try to check if a user with this email already exists in Firestore local cache
         try {
           final querySnapshot = await _firestore
               .collection('users')
@@ -91,7 +96,7 @@ class AuthService {
             );
           }
         } catch (_) {
-          // If offline or query fails, fall back to default mock generation
+          // If Firestore is totally offline, we fall back to a mock generated user profile.
         }
 
         final String name = emailLower.split('@').first.toUpperCase();
@@ -105,7 +110,7 @@ class AuthService {
           role: role,
         );
 
-        // Attempt to sync to firestore in the background, don't wait for it
+        // Try to set it in Firestore database in the background so it updates when back online.
         _firestore
             .collection('users')
             .doc(uid)
@@ -119,22 +124,24 @@ class AuthService {
         return userModel;
       }
       
-      // Clean up the error message for displaying in UI
+      // If it is not a mock user, we convert the Firebase error into a human-readable message.
       throw Exception(_handleAuthException(e));
     }
   }
 
-  /// Logs out the current user.
+  /// Logs out the current user by signing out of Firebase Auth.
   Future<void> logout() async {
     await _firebaseAuth.signOut();
   }
 
-  /// Returns the current user's profile, fetching updated Firestore data.
+  /// Gets the currently logged-in user profile.
   Future<UserModel?> getCurrentUser() async {
     final firebaseUser = _firebaseAuth.currentUser;
+    // If nobody is logged in on Firebase, return null.
     if (firebaseUser == null) return null;
 
     try {
+      // Fetch details of the current logged-in user from Firestore.
       final doc = await _firestore
           .collection('users')
           .doc(firebaseUser.uid)
@@ -151,10 +158,10 @@ class AuthService {
         );
       }
     } catch (_) {
-      // Fallback construction
+      // If we fail to fetch (e.g. offline), fall back to building it from the Firebase User profile.
     }
     
-    // Default fallback from Firebase Auth user profile
+    // Default fallback from Firebase Auth user profile info.
     final String name = firebaseUser.email?.split('@').first.toUpperCase() ?? 'USER';
     final String role = firebaseUser.email?.toLowerCase().contains('admin') == true ? 'admin' : 'agent';
     return UserModel(
@@ -165,6 +172,7 @@ class AuthService {
     );
   }
 
+  // Converts messy technical Firebase exceptions into friendly English error messages.
   String _handleAuthException(dynamic e) {
     if (e is FirebaseAuthException) {
       switch (e.code) {

@@ -16,6 +16,8 @@ import '../../../authentication/presentation/cubit/auth_state.dart';
 import '../../../settings/presentation/cubit/theme_cubit.dart';
 import 'create_task_page.dart';
 
+// This page displays all the details of a single task (title, description, status, photo).
+// It allows agents to change status, take completion photos, and allows admins to edit/delete tasks.
 class TaskDetailPage extends StatefulWidget {
   final String taskId;
 
@@ -26,9 +28,11 @@ class TaskDetailPage extends StatefulWidget {
 }
 
 class _TaskDetailPageState extends State<TaskDetailPage> {
+  // ViewModel helper that separates UI components from business logic.
   late TaskDetailViewModel _viewModel;
 
   @override
+  // Runs once when this page is opened.
   void initState() {
     super.initState();
     _viewModel = TaskDetailViewModel(taskCubit: context.read<TaskCubit>());
@@ -36,6 +40,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    // 1. Get the current authentication state (to check who is logged in and what role they have).
     final authState = context.read<AuthCubit>().state;
     if (authState is! Authenticated) {
       return const Scaffold(
@@ -44,6 +49,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     }
     final user = authState.user;
 
+    // 2. React to theme changes (e.g. Light/Dark mode).
     return BlocBuilder<ThemeCubit, ThemeMode>(
       builder: (context, themeState) {
         final isDark = AppColors.isDark;
@@ -65,6 +71,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 end: Alignment.bottomCenter,
               ),
             ),
+            // 3. React to updates on tasks (so if status changes or syncing completes, the details update automatically).
             child: BlocBuilder<TaskCubit, TaskState>(
               builder: (context, state) {
                 if (state is TasksLoaded) {

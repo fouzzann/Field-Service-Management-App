@@ -17,6 +17,8 @@ import 'task_detail_page.dart';
 import '../../../../core/dependency_injection/injection_container.dart' as di;
 import '../../../../core/network/network_info.dart';
 
+// This is the UI screen that displays the list of all tasks.
+// It is a StatefulWidget because it needs to set up a ViewModel and clean it up when closed.
 class TaskListPage extends StatefulWidget {
   const TaskListPage({super.key});
 
@@ -25,27 +27,33 @@ class TaskListPage extends StatefulWidget {
 }
 
 class _TaskListPageState extends State<TaskListPage> {
+  // We use a ViewModel to hold the logic and data state for this page, keeping the UI code clean.
   late TaskListViewModel _viewModel;
 
   @override
+  // initState is called exactly once when the page is loaded into memory.
   void initState() {
     super.initState();
+    // Initialize our ViewModel helper with the Cubits and Network information.
     _viewModel = TaskListViewModel(
       taskCubit: context.read<TaskCubit>(),
       syncCubit: context.read<SyncCubit>(),
       networkInfo: di.sl<NetworkInfo>(),
     );
-    _viewModel.load();
+    _viewModel.load(); // Fetch the initial list of tasks.
   }
 
   @override
+  // dispose is called when the user leaves the page permanently.
   void dispose() {
-    _viewModel.dispose();
+    _viewModel.dispose(); // Clean up any active subscriptions or listeners in the ViewModel.
     super.dispose();
   }
 
   @override
+  // The build method draws the UI. It runs every time the state changes.
   Widget build(BuildContext context) {
+    // BlocBuilder rebuilt the screen when the ThemeCubit updates (e.g. Light mode to Dark mode).
     return BlocBuilder<ThemeCubit, ThemeMode>(
       builder: (context, themeMode) {
         return Scaffold(
@@ -64,10 +72,12 @@ class _TaskListPageState extends State<TaskListPage> {
                 end: Alignment.bottomCenter,
               ),
             ),
+            // BlocBuilder rebuilds this section of the screen when our Task list state changes (e.g. from Loading to Loaded).
             child: BlocBuilder<TaskCubit, TaskState>(
               builder: (context, state) {
                 if (state is TaskLoading) {
-                  return const LoadingWidget();
+                  return const LoadingWidget(); // Show loading spinner.
+                }
                 }
 
                 if (state is TaskError) {

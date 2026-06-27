@@ -1,6 +1,8 @@
 import 'package:hive/hive.dart';
 import '../../domain/entities/task_entity.dart';
 
+// In Clean Architecture, a "Model" extends an "Entity" to add backend/database functions.
+// This TaskModel extends TaskEntity, adding the ability to convert tasks to/from JSON and binary format.
 class TaskModel extends TaskEntity {
   const TaskModel({
     required super.taskId,
@@ -14,6 +16,7 @@ class TaskModel extends TaskEntity {
     required super.updatedAt,
   });
 
+  // Factory constructor: Converts a JSON Map (from Firestore database) into a TaskModel object.
   factory TaskModel.fromJson(Map<String, dynamic> json) {
     return TaskModel(
       taskId: json['taskId'] as String? ?? '',
@@ -32,6 +35,7 @@ class TaskModel extends TaskEntity {
     );
   }
 
+  // Converts a TaskModel object back into a JSON Map to send to Firestore database.
   Map<String, dynamic> toJson() {
     return {
       'taskId': taskId,
@@ -46,6 +50,7 @@ class TaskModel extends TaskEntity {
     };
   }
 
+  // Converts a clean business-logic TaskEntity into a data-handling TaskModel.
   factory TaskModel.fromEntity(TaskEntity entity) {
     return TaskModel(
       taskId: entity.taskId,
@@ -61,11 +66,14 @@ class TaskModel extends TaskEntity {
   }
 }
 
+// A TypeAdapter tells Hive (our local database) how to read and write TaskModel objects to binary files.
 class TaskAdapter extends TypeAdapter<TaskModel> {
   @override
+  // Unique identification code for this adapter in Hive.
   final int typeId = 1;
 
   @override
+  // Reads binary data from the disk and turns it back into a TaskModel object.
   TaskModel read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
@@ -85,9 +93,10 @@ class TaskAdapter extends TypeAdapter<TaskModel> {
   }
 
   @override
+  // Writes a TaskModel object as binary data onto the disk.
   void write(BinaryWriter writer, TaskModel obj) {
     writer
-      ..writeByte(9)
+      ..writeByte(9) // We are saving 9 fields total
       ..writeByte(0)
       ..write(obj.taskId)
       ..writeByte(1)

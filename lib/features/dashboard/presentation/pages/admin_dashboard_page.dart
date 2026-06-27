@@ -19,6 +19,8 @@ import '../viewmodels/admin_dashboard_view_model.dart';
 import '../../../../core/network/network_info.dart';
 import '../../../../core/dependency_injection/injection_container.dart' as di;
 
+// This is the Admin Dashboard Page.
+// Admins see task completion charts, overall metrics (pending/in-progress/completed), and can navigate to Settings, Profile, or Manage Tasks.
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
 
@@ -27,9 +29,11 @@ class AdminDashboardPage extends StatefulWidget {
 }
 
 class _AdminDashboardPageState extends State<AdminDashboardPage> {
+  // ViewModel helper to coordinate loading dashboard metrics and listening to task changes.
   late AdminDashboardViewModel _viewModel;
 
   @override
+  // Runs when the admin dashboard opens.
   void initState() {
     super.initState();
     _viewModel = AdminDashboardViewModel(
@@ -37,17 +41,19 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       syncCubit: context.read<SyncCubit>(),
       networkInfo: di.sl<NetworkInfo>(),
     );
-    _viewModel.load();
+    _viewModel.load(); // Fetch initial task list & compute dashboard statistics.
   }
 
   @override
+  // Runs when closing the dashboard (e.g. logging out).
   void dispose() {
-    _viewModel.dispose();
+    _viewModel.dispose(); // Clean up listeners.
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    // Re-draw UI when light/dark theme switches.
     return BlocBuilder<ThemeCubit, ThemeMode>(
       builder: (context, themeMode) {
         return Scaffold(
@@ -80,6 +86,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 end: Alignment.bottomCenter,
               ),
             ),
+            // MultiBlocListener listens for updates from multiple Cubits without rebuilding the UI tree.
+            // This is ideal for showing snackbars, dialogs, or page routing triggers.
             child: MultiBlocListener(
               listeners: [
                 BlocListener<SyncCubit, SyncState>(
