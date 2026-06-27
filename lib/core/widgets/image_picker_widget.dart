@@ -37,6 +37,7 @@ class ImagePickerWidget extends StatelessWidget {
         onImagePicked(finalPath);
       }
     } catch (e) {
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to capture photo: $e'),

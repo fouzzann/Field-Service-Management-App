@@ -78,7 +78,6 @@ class _TaskListPageState extends State<TaskListPage> {
                 if (state is TaskLoading) {
                   return const LoadingWidget(); // Show loading spinner.
                 }
-                }
 
                 if (state is TaskError) {
                   return core_err.AppErrorWidget(
